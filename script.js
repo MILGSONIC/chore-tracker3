@@ -442,13 +442,13 @@ function renderHomePage() {
         <div class="home-story-grid">
           <article class="story-card">
             <p class="eyebrow">Quest Flavor</p>
-            <h2>Whimsical by design</h2>
-            <p>Storybook skies, lantern glows, cozy cards, and playful copy keep Home magical while the family dashboards stay easy to use.</p>
+            <h2>Whimsy, with room to breathe</h2>
+            <p>Storybook mood stays, but the boards read faster.</p>
           </article>
           <article class="story-card">
             <p class="eyebrow">Template Magic</p>
             <h2>Each page keeps three looks</h2>
-            <p>Pick a favorite mood for Home, Parent, Miles, Logan, and Zoe. Every page remembers its own style.</p>
+            <p>Each realm remembers its own style and card skin.</p>
           </article>
         </div>
       </section>
@@ -532,7 +532,6 @@ function renderHomePreview(pageId) {
       <div class="preview-card preview-home widget-surface">
         <p class="eyebrow">Storybook Hub</p>
         <h2>A whimsical launchpad for every family quest.</h2>
-        <p>Use the left column like a fantasy atlas. Every realm has its own saved visual template and mood.</p>
         <div class="preview-badges">
           <span>5 pages</span>
           <span>3 templates each</span>
@@ -552,7 +551,7 @@ function renderHomePreview(pageId) {
     panel.innerHTML = `
       <div class="preview-card widget-surface">
         <p class="eyebrow">Parent Hall</p>
-        <h2>Assign chores, check them off, and manage every board.</h2>
+        <h2>Manage chores, rewards, and every board.</h2>
         <div class="preview-stats">
           ${renderMetricWidget("Open quests", familyMetrics.openTasks.length, "open", "Family", familyMetrics.openTasks.length)}
           ${renderMetricWidget("Completed", familyMetrics.completedTasks.length, "completed", "Family", familyMetrics.completedTasks.length)}
@@ -570,13 +569,12 @@ function renderHomePreview(pageId) {
   panel.innerHTML = `
     <div class="preview-card widget-surface">
       <p class="eyebrow">${profile.name}'s Realm</p>
-      <h2>${profile.name} sees shared chores plus quests assigned just to them.</h2>
+      <h2>${profile.name}'s shared and assigned quests.</h2>
       <div class="preview-stats">
         ${renderMetricWidget("Open quests", metrics.openTasks.length, "open", profile.name, metrics.openTasks.length)}
         ${renderMetricWidget("Earned", formatCurrency(metrics.earnings), "money", profile.name, metrics.earnings)}
         ${renderMetricWidget("Level", metrics.level, "level", profile.name, metrics.level)}
       </div>
-      <p class="preview-caption">Read-only view with progress, rewards, and recent wins.</p>
     </div>
     <div class="preview-ledger widget-surface">
       ${(metrics.historyEntries.slice(0, 3).map((entry) => `<div class="preview-ledger-row"><span>${entry.title}</span><strong>${formatCurrency(entry.reward)}</strong></div>`).join("")) || '<p class="preview-caption">No rewards logged yet on this page.</p>'}
@@ -584,22 +582,22 @@ function renderHomePreview(pageId) {
   `;
 }
 
-function renderMetricWidget(label, value, metricType, owner, numericValue, className = "") {
+function renderMetricWidget(label, value, metricType, owner, numericValue, className = "", showDescription = false) {
   return `
-    <article class="widget-card ${className}">
-      <span>${label}</span>
-      <strong>${value}</strong>
-      <p class="widget-description">${getMetricDescription(metricType, { owner, value: numericValue })}</p>
+    <article class="widget-card metric-${metricType} ${className}">
+      <span class="widget-label">${label}</span>
+      <strong class="widget-value">${value}</strong>
+      ${showDescription ? `<p class="widget-description">${getMetricDescription(metricType, { owner, value: numericValue })}</p>` : ""}
     </article>
   `;
 }
 
-function renderInfoWidget(label, text, className = "") {
+function renderInfoWidget(label, text, className = "", showDescription = false) {
   return `
-    <article class="widget-card ${className}">
-      <span>${label}</span>
-      <strong>${text}</strong>
-      <p class="widget-description">This panel keeps the next best move easy to read at a glance.</p>
+    <article class="widget-card metric-info ${className}">
+      <span class="widget-label">${label}</span>
+      <strong class="widget-value">${text}</strong>
+      ${showDescription ? '<p class="widget-description">A quick hint for the next move.</p>' : ""}
     </article>
   `;
 }
@@ -699,7 +697,7 @@ function renderParentPanels() {
         <p class="eyebrow">Parent Controls</p>
         <h2>Craft a new quest</h2>
       </div>
-      <div class="notice-banner subtle">Only the Parent page can add chores, credit shared tasks, delete tasks, and clear completed quests.</div>
+      <div class="notice-banner subtle">Parent controls live here.</div>
       <form id="task-form" class="task-form">
         <label>
           Quest name
@@ -754,7 +752,7 @@ function renderParentPanels() {
         <p class="eyebrow">Chore Import</p>
         <h2>Drop in a list and get smart suggestions</h2>
       </div>
-      <div class="notice-banner subtle">Paste chores or upload a browser-readable document. Suggestions are distributed by labels and reward values before anything is created.</div>
+      <div class="notice-banner subtle">Paste or upload chores to build suggestions before creating them.</div>
       <div class="task-form">
         <label>
           Paste chore list
@@ -1187,10 +1185,9 @@ function renderProfileSummaryRegion(pageConfig) {
     .map((profile) => {
       const metrics = getProfileMetrics(profile.id);
       return `
-        <article class="mini-stat widget-card kid-mini-card ${pageConfig.profileId === profile.id ? "current" : ""}">
-          <span>${profile.name}</span>
-          <strong>${metrics.openTasks.length} open</strong>
-          <p class="widget-description">${getMetricDescription("money", { owner: profile.name, value: metrics.earnings })}</p>
+        <article class="mini-stat widget-card metric-money kid-mini-card ${pageConfig.profileId === profile.id ? "current" : ""}">
+          <span class="widget-label">${profile.name}</span>
+          <strong class="widget-value">${metrics.openTasks.length} open</strong>
           <span>${formatCurrency(metrics.earnings)} earned</span>
         </article>
       `;
@@ -1267,26 +1264,26 @@ function getPageHeroTitle(pageConfig, profile) {
 
 function getPageHeroText(pageConfig, profile) {
   if (pageConfig.type === "parent") {
-    return "The Parent hall is practical but still part of the same fantasy world. Assign shared chores, hand out kid-specific quests, and credit every reward from one place.";
+    return "Assign chores, credit rewards, and keep the quest board moving.";
   }
 
-  return `${profile.name} can only see shared quests plus chores assigned directly to them. This page stays read-only while still feeling like part of the larger storybook map.`;
+  return `${profile.name}'s board stays read-only and easy to scan.`;
 }
 
 function getTip(pageConfig, profile, metrics) {
   if (pageConfig.type === "parent") {
     if (!metrics.openTasks.length) {
-      return "The board is clear. Add a fresh shared quest to start the next round.";
+      return "Add a fresh quest to start the next round.";
     }
 
-    return "Use the pretty dropdowns below to assign one quick win and one bigger mission.";
+    return "Assign one quick win and one bigger mission.";
   }
 
   if (!metrics.openTasks.length) {
     return `${profile.name}'s board is clear right now.`;
   }
 
-  return `Shared quests are fair game, and ${profile.name}'s personal chores stay neatly grouped here.`;
+  return `Shared quests stay mixed with ${profile.name}'s own chores here.`;
 }
 
 function completeTask(id, creditOverride) {
