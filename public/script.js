@@ -450,11 +450,17 @@ function renderHomePage() {
               <p>Storybook mood stays, but the boards read faster.</p>
             </div>
             <div class="story-card-ornament" aria-hidden="true">
-              <span class="ornament-seal"></span>
-              <span class="ornament-path ornament-path-one"></span>
-              <span class="ornament-path ornament-path-two"></span>
-              <span class="ornament-star ornament-star-one"></span>
-              <span class="ornament-star ornament-star-two"></span>
+              <div class="ornament-scene ornament-scene-tower">
+                <span class="tower-base"></span>
+                <span class="tower-top"></span>
+                <span class="tower-flag"></span>
+                <span class="tower-window tower-window-one"></span>
+                <span class="tower-window tower-window-two"></span>
+                <span class="stone-bridge"></span>
+                <span class="path-ribbon"></span>
+                <span class="shield-marker shield-marker-one"></span>
+                <span class="shield-marker shield-marker-two"></span>
+              </div>
             </div>
           </article>
           <article class="story-card story-card-magic reveal rise-4">
@@ -464,10 +470,15 @@ function renderHomePage() {
               <p>Each realm remembers its own style and card skin.</p>
             </div>
             <div class="story-card-ornament" aria-hidden="true">
-              <span class="ornament-frame"></span>
-              <span class="ornament-orb ornament-orb-one"></span>
-              <span class="ornament-orb ornament-orb-two"></span>
-              <span class="ornament-star ornament-star-three"></span>
+              <div class="ornament-scene ornament-scene-heraldic">
+                <span class="mini-keep"></span>
+                <span class="mini-keep-roof"></span>
+                <span class="banner-post"></span>
+                <span class="banner-cloth"></span>
+                <span class="shield-plaque shield-plaque-one"></span>
+                <span class="shield-plaque shield-plaque-two"></span>
+                <span class="arch-note"></span>
+              </div>
             </div>
           </article>
         </div>
@@ -560,24 +571,34 @@ function renderHomePreview(pageId) {
           </div>
         </div>
         <div class="preview-home-ornament" aria-hidden="true">
-          <div class="preview-crest">
-            <span class="preview-crest-ring"></span>
-            <span class="preview-crest-core">CQ</span>
+          <div class="preview-heraldry">
+            <div class="preview-shield">
+              <span class="preview-shield-frame"></span>
+              <span class="preview-shield-core">CQ</span>
+              <span class="preview-shield-ribbon"></span>
+            </div>
           </div>
-          <div class="preview-constellation">
-            <span class="constellation-star star-a"></span>
-            <span class="constellation-star star-b"></span>
-            <span class="constellation-star star-c"></span>
-            <span class="constellation-star star-d"></span>
-            <span class="constellation-line line-a"></span>
-            <span class="constellation-line line-b"></span>
-            <span class="constellation-line line-c"></span>
+          <div class="preview-castle-scene">
+            <span class="castle-ground"></span>
+            <span class="castle-wall"></span>
+            <span class="castle-gate"></span>
+            <span class="castle-tower castle-tower-left"></span>
+            <span class="castle-tower castle-tower-center"></span>
+            <span class="castle-tower castle-tower-right"></span>
+            <span class="castle-merlon castle-merlon-one"></span>
+            <span class="castle-merlon castle-merlon-two"></span>
+            <span class="castle-merlon castle-merlon-three"></span>
+            <span class="castle-flag castle-flag-left"></span>
+            <span class="castle-flag castle-flag-right"></span>
           </div>
-          <div class="preview-map-panel">
-            <span class="map-route"></span>
-            <span class="map-marker marker-one"></span>
-            <span class="map-marker marker-two"></span>
-            <span class="map-marker marker-three"></span>
+          <div class="preview-map-panel preview-map-panel-medieval">
+            <span class="map-route route-main"></span>
+            <span class="map-route route-side"></span>
+            <span class="map-stop stop-one"></span>
+            <span class="map-stop stop-two"></span>
+            <span class="map-stop stop-three"></span>
+            <span class="map-castle-icon"></span>
+            <span class="map-banner"></span>
           </div>
         </div>
         <div class="preview-stats">
