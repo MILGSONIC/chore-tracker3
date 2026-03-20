@@ -187,6 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   applyTemplate(pageId);
   applyWidgetStyle(pageId);
+  requestAnimationFrame(() => {
+    document.body.dataset.motion = "ready";
+  });
   renderTopBar(pageId);
 
   if (pageConfig.type === "home") {
@@ -319,7 +322,7 @@ function renderTopBar(pageId) {
   }
 
   topBar.innerHTML = `
-    <div class="topbar-shell">
+    <div class="topbar-shell reveal rise-1">
       <a class="brand-mark" href="index.html">
         <span class="brand-crest">CQ</span>
         <span class="brand-copy">
@@ -418,7 +421,7 @@ function renderHomePage() {
 
   mount.innerHTML = `
     <section class="home-shell">
-      <aside class="realm-column">
+      <aside class="realm-column reveal rise-1">
         <p class="eyebrow">Choose Your Realm</p>
         <h1>The family quest board now has five enchanted pages.</h1>
         <p class="hero-text">
@@ -431,7 +434,7 @@ function renderHomePage() {
           <span>${templates.map((theme) => theme.label).join(", ")}</span>
         </div>
       </aside>
-      <section class="home-preview">
+      <section class="home-preview reveal rise-2">
         <div class="preview-stage">
           <div class="preview-topline">
             <span>Realm Preview</span>
@@ -440,12 +443,12 @@ function renderHomePage() {
           <div id="home-preview-panel"></div>
         </div>
         <div class="home-story-grid">
-          <article class="story-card">
+          <article class="story-card reveal rise-3">
             <p class="eyebrow">Quest Flavor</p>
             <h2>Whimsy, with room to breathe</h2>
             <p>Storybook mood stays, but the boards read faster.</p>
           </article>
-          <article class="story-card">
+          <article class="story-card reveal rise-4">
             <p class="eyebrow">Template Magic</p>
             <h2>Each page keeps three looks</h2>
             <p>Each realm remembers its own style and card skin.</p>
@@ -473,7 +476,7 @@ function renderHomeNav() {
           : `${profileMap[config.profileId].age} year old dashboard`;
 
       return `
-        <button class="realm-link ${index === 0 ? "active" : ""}" type="button" data-page-target="${pageId}">
+        <button class="realm-link reveal rise-${Math.min(index + 1, 5)} ${index === 0 ? "active" : ""}" type="button" data-page-target="${pageId}">
           <span class="realm-index">0${index + 1}</span>
           <span class="realm-copy">
             <strong>${config.title}</strong>
@@ -549,7 +552,7 @@ function renderHomePreview(pageId) {
   if (pageId === "parent") {
     const familyMetrics = getProfileMetrics("parent");
     panel.innerHTML = `
-      <div class="preview-card widget-surface">
+      <div class="preview-card widget-surface reveal rise-3">
         <p class="eyebrow">Parent Hall</p>
         <h2>Manage chores, rewards, and every board.</h2>
         <div class="preview-stats">
@@ -567,7 +570,7 @@ function renderHomePreview(pageId) {
   const metrics = getProfileMetrics(profileId);
 
   panel.innerHTML = `
-    <div class="preview-card widget-surface">
+    <div class="preview-card widget-surface reveal rise-3">
       <p class="eyebrow">${profile.name}'s Realm</p>
       <h2>${profile.name}'s shared and assigned quests.</h2>
       <div class="preview-stats">
@@ -576,7 +579,7 @@ function renderHomePreview(pageId) {
         ${renderMetricWidget("Level", metrics.level, "level", profile.name, metrics.level)}
       </div>
     </div>
-    <div class="preview-ledger widget-surface">
+    <div class="preview-ledger widget-surface reveal rise-4">
       ${(metrics.historyEntries.slice(0, 3).map((entry) => `<div class="preview-ledger-row"><span>${entry.title}</span><strong>${formatCurrency(entry.reward)}</strong></div>`).join("")) || '<p class="preview-caption">No rewards logged yet on this page.</p>'}
     </div>
   `;
@@ -625,7 +628,7 @@ function renderDashboardPage(pageConfig) {
 
   mount.innerHTML = `
     <section class="page-shell-grid">
-      <header class="page-hero widget-surface ${pageConfig.type === "parent" ? "page-hero-parent" : ""}">
+      <header class="page-hero widget-surface reveal rise-1 ${pageConfig.type === "parent" ? "page-hero-parent" : ""}">
         <div class="page-hero-copy">
           <p class="eyebrow">${pageConfig.type === "parent" ? "Parent Hall" : `${profile.name}'s Realm`}</p>
           <h1>${getPageHeroTitle(pageConfig, profile)}</h1>
@@ -645,7 +648,7 @@ function renderDashboardPage(pageConfig) {
       </header>
 
       <main class="dashboard-grid">
-        <section class="panel panel-board widget-surface">
+        <section class="panel panel-board widget-surface reveal rise-2">
           <div class="panel-heading">
             <p class="eyebrow">${pageConfig.type === "parent" ? "Family Board" : "Quest Board"}</p>
             <h2>${pageConfig.type === "parent" ? "Assign, credit, and clear chores" : `${profile.name}'s active quests`}</h2>
@@ -658,7 +661,7 @@ function renderDashboardPage(pageConfig) {
           <div id="task-region"></div>
         </section>
 
-        <section class="panel panel-side widget-surface">
+        <section class="panel panel-side widget-surface reveal rise-3">
           <div class="panel-heading">
             <p class="eyebrow">${pageConfig.type === "parent" ? "Family Pulse" : "Realm Pulse"}</p>
             <h2>${pageConfig.type === "parent" ? "Kid snapshots and reward trail" : `${profile.name}'s snapshots and rewards`}</h2>
@@ -692,7 +695,7 @@ function renderDashboardPage(pageConfig) {
 
 function renderParentPanels() {
   return `
-    <section class="panel panel-form widget-surface">
+    <section class="panel panel-form widget-surface reveal rise-4">
       <div class="panel-heading">
         <p class="eyebrow">Parent Controls</p>
         <h2>Craft a new quest</h2>
@@ -747,7 +750,7 @@ function renderParentPanels() {
         </div>
       </form>
     </section>
-    <section class="panel panel-import widget-surface">
+    <section class="panel panel-import widget-surface reveal rise-5">
       <div class="panel-heading">
         <p class="eyebrow">Chore Import</p>
         <h2>Drop in a list and get smart suggestions</h2>
@@ -1141,7 +1144,7 @@ function renderTaskCard(task, parentMode) {
   const metaLabel = task.label ? `<span class="label-pill">${task.label}</span>` : "";
 
   return `
-    <li class="task-card ${task.completed ? "completed" : ""}">
+    <li class="task-card reveal rise-2 ${task.completed ? "completed" : ""}">
       ${parentMode ? `<button class="task-toggle" type="button" data-toggle-task="${task.id}" aria-label="Toggle task complete"></button>` : '<div class="task-toggle ghost"></div>'}
       <div class="task-content">
         <div class="task-topline">
@@ -1185,7 +1188,7 @@ function renderProfileSummaryRegion(pageConfig) {
     .map((profile) => {
       const metrics = getProfileMetrics(profile.id);
       return `
-        <article class="mini-stat widget-card metric-money kid-mini-card ${pageConfig.profileId === profile.id ? "current" : ""}">
+        <article class="mini-stat widget-card metric-money kid-mini-card reveal rise-3 ${pageConfig.profileId === profile.id ? "current" : ""}">
           <span class="widget-label">${profile.name}</span>
           <strong class="widget-value">${metrics.openTasks.length} open</strong>
           <span>${formatCurrency(metrics.earnings)} earned</span>
