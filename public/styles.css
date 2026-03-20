@@ -137,7 +137,8 @@ select {
 .realm-column,
 .preview-stage,
 .story-card,
-.page-hero {
+.page-hero,
+.widget-surface {
   border: 1px solid rgba(255, 255, 255, 0.58);
   background: var(--surface);
   backdrop-filter: blur(16px);
@@ -402,6 +403,20 @@ h2 {
   border: 1px solid var(--line);
 }
 
+.widget-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.widget-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -55% 35%;
+  height: 90px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 62%);
+  pointer-events: none;
+}
+
 .preview-stats strong,
 .snapshot-card strong,
 .summary-row strong,
@@ -409,6 +424,13 @@ h2 {
   display: block;
   margin-top: 8px;
   font-size: 1.45rem;
+}
+
+.widget-description {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .home-story-grid,
@@ -452,7 +474,8 @@ h2 {
 .task-form,
 .mini-stat-stack,
 .kid-grid,
-.task-list {
+.task-list,
+.import-list {
   display: grid;
   gap: 14px;
 }
@@ -526,6 +549,7 @@ h2 {
 }
 
 .difficulty-pill,
+.label-pill,
 .scope-pill,
 .credit-pill,
 .xp-pill {
@@ -539,6 +563,12 @@ h2 {
 .difficulty-pill {
   background: rgba(241, 162, 8, 0.15);
   color: #8e5c00;
+}
+
+.label-pill {
+  background: rgba(239, 111, 108, 0.12);
+  color: #9d4442;
+  text-transform: capitalize;
 }
 
 .scope-pill {
@@ -583,6 +613,43 @@ h2 {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px dashed rgba(31, 34, 48, 0.1);
+}
+
+.import-textarea,
+.task-form input[type="file"] {
+  width: 100%;
+  padding: 15px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--ink);
+}
+
+.import-textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.import-preview {
+  margin-top: 18px;
+}
+
+.import-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  border-radius: 24px;
+}
+
+.import-card strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.import-assignee {
+  min-width: 0;
 }
 
 .notice-banner {
@@ -638,6 +705,36 @@ h2 {
   box-shadow: var(--shadow);
 }
 
+body[data-widget-style="gilded"] .widget-card,
+body[data-widget-style="gilded"] .widget-surface {
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.92), rgba(255, 245, 225, 0.84));
+  border-color: rgba(241, 162, 8, 0.18);
+}
+
+body[data-widget-style="moss"] .widget-card,
+body[data-widget-style="moss"] .widget-surface {
+  background: linear-gradient(180deg, rgba(245, 251, 244, 0.92), rgba(233, 244, 230, 0.84));
+  border-color: rgba(45, 156, 149, 0.18);
+}
+
+body[data-widget-style="twilight"] .widget-card,
+body[data-widget-style="twilight"] .widget-surface {
+  background: linear-gradient(180deg, rgba(248, 246, 255, 0.92), rgba(233, 230, 247, 0.84));
+  border-color: rgba(131, 163, 244, 0.22);
+}
+
+body[data-widget-style="gilded"] .widget-description {
+  color: #765429;
+}
+
+body[data-widget-style="moss"] .widget-description {
+  color: #3d665d;
+}
+
+body[data-widget-style="twilight"] .widget-description {
+  color: #575d8a;
+}
+
 .pin-modal-card input {
   width: 100%;
   padding: 15px 16px;
@@ -656,7 +753,8 @@ h2 {
   .page-hero,
   .dashboard-grid,
   .home-story-grid,
-  .kid-grid {
+  .kid-grid,
+  .import-card {
     grid-template-columns: 1fr;
   }
 }

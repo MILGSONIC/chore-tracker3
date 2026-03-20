@@ -1,8 +1,9 @@
 const STORAGE_KEY = "chore-quest-state";
 const PARENT_SESSION_KEY = "chore-quest-parent-unlocked";
 const TEMPLATE_KEY = "chore-quest-templates";
+const WIDGET_STYLE_KEY = "chore-quest-widget-styles";
 const PARENT_PIN = "4826";
-const STATE_VERSION = 3;
+const STATE_VERSION = 4;
 
 const profiles = [
   { id: "miles", name: "Miles", age: 13, role: "Oldest adventurer" },
@@ -11,6 +12,55 @@ const profiles = [
 ];
 
 const profileMap = Object.fromEntries(profiles.map((profile) => [profile.id, profile]));
+
+const widgetStyleOptions = [
+  { id: "gilded", label: "Gilded Cards" },
+  { id: "moss", label: "Mossy Ledger" },
+  { id: "twilight", label: "Twilight Glass" },
+];
+
+const widgetDescriptionPools = {
+  money: [
+    ({ owner }) => `${owner} treasure pouch keeps getting heavier.`,
+    ({ owner }) => `${owner} coins are stacking like quest loot.`,
+    ({ owner }) => `${owner} reward total is turning chores into treasure.`,
+  ],
+  xp: [
+    ({ owner }) => `${owner} experience bar keeps inching toward the next title.`,
+    ({ owner }) => `${owner} XP is proof that the quest board is moving.`,
+    ({ owner }) => `${owner} levels are built one finished chore at a time.`,
+  ],
+  level: [
+    ({ owner }) => `${owner} rank is climbing with every cleared mission.`,
+    ({ owner }) => `${owner} level shows how much momentum is built already.`,
+    ({ owner }) => `${owner} title path is looking stronger every round.`,
+  ],
+  combo: [
+    ({ owner }) => `${owner} streak grows when chores land back-to-back.`,
+    ({ owner }) => `${owner} combo count rewards steady follow-through.`,
+    ({ owner }) => `${owner} has momentum when the board keeps moving.`,
+  ],
+  completed: [
+    ({ owner }) => `${owner} already turned these quests into finished wins.`,
+    ({ owner }) => `${owner} cleared chores are adding up nicely.`,
+    ({ owner }) => `${owner} completed board is starting to look heroic.`,
+  ],
+  open: [
+    ({ owner }) => `${owner} still has these quests waiting in the wings.`,
+    ({ owner }) => `${owner} open chores are the next easy path to progress.`,
+    ({ owner }) => `${owner} board still has a few adventures left to clear.`,
+  ],
+  potential: [
+    ({ owner }) => `${owner} could earn this much if the rest of the board gets cleared.`,
+    ({ owner }) => `${owner} still has this much reward value sitting on the board.`,
+    ({ owner }) => `${owner} potential payout is hiding in the unfinished quests.`,
+  ],
+  rank: [
+    ({ owner }) => `${owner} current title reflects the pace of recent wins.`,
+    ({ owner }) => `${owner} rank name is the storybook version of progress.`,
+    ({ owner }) => `${owner} title shifts as the board gets cleared.`,
+  ],
+};
 
 const pageConfigs = {
   home: {
@@ -117,6 +167,7 @@ const rankTitles = [
 
 const state = loadState();
 const templatePrefs = loadTemplatePrefs();
+const widgetStylePrefs = loadWidgetStylePrefs();
 const parentAccess = {
   unlocked: sessionStorage.getItem(PARENT_SESSION_KEY) === "true",
 };
@@ -135,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   applyTemplate(pageId);
+  applyWidgetStyle(pageId);
   renderTopBar(pageId);
 
   if (pageConfig.type === "home") {
@@ -178,12 +230,13 @@ function migrateState(parsed) {
     tasks: rawTasks.map((task) => ({
       id: task.id || crypto.randomUUID(),
       title: task.title || "Untitled quest",
-      reward: Number.isFinite(Number(task.reward)) ? Number(task.reward) : 0,
+      reward: normalizeRewardForAssignee(Number.isFinite(Number(task.reward)) ? Number(task.reward) : 0, task.scope === "assigned" ? task.assigneeId : null),
       difficulty: difficultyXp[task.difficulty] ? task.difficulty : "Medium",
       completed: Boolean(task.completed),
       scope: task.scope === "assigned" ? "assigned" : "shared",
       assigneeId: profileMap[task.assigneeId] ? task.assigneeId : null,
       completedById: profileMap[task.completedById] ? task.completedById : null,
+      label: typeof task.label === "string" ? task.label : "",
     })),
     history: rawHistory.map((entry) => ({
       id: entry.id || crypto.randomUUID(),
@@ -219,6 +272,24 @@ function saveTemplatePrefs() {
   localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templatePrefs));
 }
 
+function loadWidgetStylePrefs() {
+  const saved = localStorage.getItem(WIDGET_STYLE_KEY);
+
+  if (!saved) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(saved);
+  } catch {
+    return {};
+  }
+}
+
+function saveWidgetStylePrefs() {
+  localStorage.setItem(WIDGET_STYLE_KEY, JSON.stringify(widgetStylePrefs));
+}
+
 function getTemplateForPage(pageId) {
   const pageConfig = pageConfigs[pageId];
   const fallback = pageConfig.themes[0].id;
@@ -228,6 +299,15 @@ function getTemplateForPage(pageId) {
 
 function applyTemplate(pageId) {
   document.body.dataset.template = getTemplateForPage(pageId);
+}
+
+function getWidgetStyleForPage(pageId) {
+  const saved = widgetStylePrefs[pageId];
+  return widgetStyleOptions.some((option) => option.id === saved) ? saved : widgetStyleOptions[0].id;
+}
+
+function applyWidgetStyle(pageId) {
+  document.body.dataset.widgetStyle = getWidgetStyleForPage(pageId);
 }
 
 function renderTopBar(pageId) {
@@ -270,13 +350,27 @@ function renderTopBar(pageId) {
             <span class="select-arrow">v</span>
           </div>
         </label>
-        ${parentAccess.unlocked ? '<button class="ghost-button compact" id="lock-parent-global" type="button">Lock Parent</button>' : ""}
+        ${parentAccess.unlocked ? `
+          <label class="pretty-select">
+            <span class="select-label">Widget style</span>
+            <div class="select-shell">
+              <select id="widget-style-picker">
+                ${widgetStyleOptions
+                  .map((option) => `<option value="${option.id}" ${option.id === getWidgetStyleForPage(pageId) ? "selected" : ""}>${option.label}</option>`)
+                  .join("")}
+              </select>
+              <span class="select-arrow">v</span>
+            </div>
+          </label>
+          <button class="ghost-button compact" id="lock-parent-global" type="button">Lock Parent</button>
+        ` : ""}
       </div>
     </div>
   `;
 
   const nav = document.getElementById("page-nav");
   const templatePicker = document.getElementById("template-picker");
+  const widgetStylePicker = document.getElementById("widget-style-picker");
   const lockButton = document.getElementById("lock-parent-global");
 
   nav.addEventListener("change", () => {
@@ -297,6 +391,14 @@ function renderTopBar(pageId) {
     saveTemplatePrefs();
     applyTemplate(pageId);
   });
+
+  if (widgetStylePicker) {
+    widgetStylePicker.addEventListener("change", () => {
+      widgetStylePrefs[pageId] = widgetStylePicker.value;
+      saveWidgetStylePrefs();
+      applyWidgetStyle(pageId);
+    });
+  }
 
   if (lockButton) {
     lockButton.addEventListener("click", () => {
@@ -425,8 +527,9 @@ function renderHomePreview(pageId) {
   }
 
   if (pageId === "home") {
+    const familyMetrics = getProfileMetrics("parent");
     panel.innerHTML = `
-      <div class="preview-card preview-home">
+      <div class="preview-card preview-home widget-surface">
         <p class="eyebrow">Storybook Hub</p>
         <h2>A whimsical launchpad for every family quest.</h2>
         <p>Use the left column like a fantasy atlas. Every realm has its own saved visual template and mood.</p>
@@ -434,6 +537,10 @@ function renderHomePreview(pageId) {
           <span>5 pages</span>
           <span>3 templates each</span>
           <span>Fantasy home hub</span>
+        </div>
+        <div class="preview-stats">
+          ${renderMetricWidget("Family Treasure", formatCurrency(familyMetrics.earnings), "money", "Family", familyMetrics.earnings)}
+          ${renderMetricWidget("Open Adventures", familyMetrics.openTasks.length, "open", "Family", familyMetrics.openTasks.length)}
         </div>
       </div>
     `;
@@ -443,13 +550,13 @@ function renderHomePreview(pageId) {
   if (pageId === "parent") {
     const familyMetrics = getProfileMetrics("parent");
     panel.innerHTML = `
-      <div class="preview-card">
+      <div class="preview-card widget-surface">
         <p class="eyebrow">Parent Hall</p>
         <h2>Assign chores, check them off, and manage every board.</h2>
         <div class="preview-stats">
-          <article><span>Open quests</span><strong>${familyMetrics.openTasks.length}</strong></article>
-          <article><span>Completed</span><strong>${familyMetrics.completedTasks.length}</strong></article>
-          <article><span>Potential rewards</span><strong>$${familyMetrics.potential}</strong></article>
+          ${renderMetricWidget("Open quests", familyMetrics.openTasks.length, "open", "Family", familyMetrics.openTasks.length)}
+          ${renderMetricWidget("Completed", familyMetrics.completedTasks.length, "completed", "Family", familyMetrics.completedTasks.length)}
+          ${renderMetricWidget("Potential rewards", formatCurrency(familyMetrics.potential), "potential", "Family", familyMetrics.potential)}
         </div>
       </div>
     `;
@@ -461,20 +568,53 @@ function renderHomePreview(pageId) {
   const metrics = getProfileMetrics(profileId);
 
   panel.innerHTML = `
-    <div class="preview-card">
+    <div class="preview-card widget-surface">
       <p class="eyebrow">${profile.name}'s Realm</p>
       <h2>${profile.name} sees shared chores plus quests assigned just to them.</h2>
       <div class="preview-stats">
-        <article><span>Open quests</span><strong>${metrics.openTasks.length}</strong></article>
-        <article><span>Earned</span><strong>$${metrics.earnings}</strong></article>
-        <article><span>Level</span><strong>${metrics.level}</strong></article>
+        ${renderMetricWidget("Open quests", metrics.openTasks.length, "open", profile.name, metrics.openTasks.length)}
+        ${renderMetricWidget("Earned", formatCurrency(metrics.earnings), "money", profile.name, metrics.earnings)}
+        ${renderMetricWidget("Level", metrics.level, "level", profile.name, metrics.level)}
       </div>
       <p class="preview-caption">Read-only view with progress, rewards, and recent wins.</p>
     </div>
-    <div class="preview-ledger">
-      ${(metrics.historyEntries.slice(0, 3).map((entry) => `<div class="preview-ledger-row"><span>${entry.title}</span><strong>+$${entry.reward}</strong></div>`).join("")) || '<p class="preview-caption">No rewards logged yet on this page.</p>'}
+    <div class="preview-ledger widget-surface">
+      ${(metrics.historyEntries.slice(0, 3).map((entry) => `<div class="preview-ledger-row"><span>${entry.title}</span><strong>${formatCurrency(entry.reward)}</strong></div>`).join("")) || '<p class="preview-caption">No rewards logged yet on this page.</p>'}
     </div>
   `;
+}
+
+function renderMetricWidget(label, value, metricType, owner, numericValue, className = "") {
+  return `
+    <article class="widget-card ${className}">
+      <span>${label}</span>
+      <strong>${value}</strong>
+      <p class="widget-description">${getMetricDescription(metricType, { owner, value: numericValue })}</p>
+    </article>
+  `;
+}
+
+function renderInfoWidget(label, text, className = "") {
+  return `
+    <article class="widget-card ${className}">
+      <span>${label}</span>
+      <strong>${text}</strong>
+      <p class="widget-description">This panel keeps the next best move easy to read at a glance.</p>
+    </article>
+  `;
+}
+
+function getMetricDescription(metricType, context) {
+  const pool = widgetDescriptionPools[metricType] || widgetDescriptionPools.open;
+  return pool[Math.floor(Math.random() * pool.length)](context);
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(Number(value)) ? Number(value) : 0);
 }
 
 function renderDashboardPage(pageConfig) {
@@ -487,7 +627,7 @@ function renderDashboardPage(pageConfig) {
 
   mount.innerHTML = `
     <section class="page-shell-grid">
-      <header class="page-hero ${pageConfig.type === "parent" ? "page-hero-parent" : ""}">
+      <header class="page-hero widget-surface ${pageConfig.type === "parent" ? "page-hero-parent" : ""}">
         <div class="page-hero-copy">
           <p class="eyebrow">${pageConfig.type === "parent" ? "Parent Hall" : `${profile.name}'s Realm`}</p>
           <h1>${getPageHeroTitle(pageConfig, profile)}</h1>
@@ -499,53 +639,35 @@ function renderDashboardPage(pageConfig) {
           </div>
         </div>
         <div class="snapshot-grid">
-          <article class="snapshot-card">
-            <span>${pageConfig.type === "parent" ? "Family level" : "Level"}</span>
-            <strong>${metrics.level}</strong>
-          </article>
-          <article class="snapshot-card">
-            <span>XP</span>
-            <strong>${metrics.currentXp} / 100</strong>
-          </article>
-          <article class="snapshot-card">
-            <span>Earnings</span>
-            <strong>$${metrics.earnings}</strong>
-          </article>
-          <article class="snapshot-card">
-            <span>${pageConfig.type === "parent" ? "Completed" : "Combo"}</span>
-            <strong>${pageConfig.type === "parent" ? metrics.completedTasks.length : `x${metrics.combo}`}</strong>
-          </article>
+          ${renderMetricWidget(pageConfig.type === "parent" ? "Family level" : "Level", metrics.level, "level", pageConfig.type === "parent" ? "Family" : profile.name, metrics.level, "snapshot-card")}
+          ${renderMetricWidget("XP", `${metrics.currentXp} / 100`, "xp", pageConfig.type === "parent" ? "Family" : profile.name, metrics.currentXp, "snapshot-card")}
+          ${renderMetricWidget("Earnings", formatCurrency(metrics.earnings), "money", pageConfig.type === "parent" ? "Family" : profile.name, metrics.earnings, "snapshot-card")}
+          ${renderMetricWidget(pageConfig.type === "parent" ? "Completed" : "Combo", pageConfig.type === "parent" ? metrics.completedTasks.length : `x${metrics.combo}`, pageConfig.type === "parent" ? "completed" : "combo", pageConfig.type === "parent" ? "Family" : profile.name, pageConfig.type === "parent" ? metrics.completedTasks.length : metrics.combo, "snapshot-card")}
         </div>
       </header>
 
       <main class="dashboard-grid">
-        <section class="panel panel-board">
+        <section class="panel panel-board widget-surface">
           <div class="panel-heading">
             <p class="eyebrow">${pageConfig.type === "parent" ? "Family Board" : "Quest Board"}</p>
             <h2>${pageConfig.type === "parent" ? "Assign, credit, and clear chores" : `${profile.name}'s active quests`}</h2>
           </div>
           <div class="summary-row">
-            <article><span>Open</span><strong>${metrics.openTasks.length}</strong></article>
-            <article><span>Done</span><strong>${metrics.completedTasks.length}</strong></article>
-            <article><span>Potential</span><strong>$${metrics.potential}</strong></article>
+            ${renderMetricWidget("Open", metrics.openTasks.length, "open", pageConfig.type === "parent" ? "Family" : profile.name, metrics.openTasks.length)}
+            ${renderMetricWidget("Done", metrics.completedTasks.length, "completed", pageConfig.type === "parent" ? "Family" : profile.name, metrics.completedTasks.length)}
+            ${renderMetricWidget("Potential", formatCurrency(metrics.potential), "potential", pageConfig.type === "parent" ? "Family" : profile.name, metrics.potential)}
           </div>
           <div id="task-region"></div>
         </section>
 
-        <section class="panel panel-side">
+        <section class="panel panel-side widget-surface">
           <div class="panel-heading">
             <p class="eyebrow">${pageConfig.type === "parent" ? "Family Pulse" : "Realm Pulse"}</p>
             <h2>${pageConfig.type === "parent" ? "Kid snapshots and reward trail" : `${profile.name}'s snapshots and rewards`}</h2>
           </div>
           <div class="mini-stat-stack">
-            <article class="mini-stat">
-              <span>Rank title</span>
-              <strong>${rankTitle}</strong>
-            </article>
-            <article class="mini-stat">
-              <span>Best next move</span>
-              <strong>${getTip(pageConfig, profile, metrics)}</strong>
-            </article>
+            ${renderMetricWidget("Rank title", rankTitle, "rank", pageConfig.type === "parent" ? "Family" : profile.name, metrics.level, "mini-stat")}
+            ${renderInfoWidget("Best next move", getTip(pageConfig, profile, metrics), "mini-stat")}
           </div>
           <div class="kid-grid" id="profile-summary-region"></div>
           <div class="ledger-panel">
@@ -554,63 +676,7 @@ function renderDashboardPage(pageConfig) {
           </div>
         </section>
 
-        ${pageConfig.type === "parent" ? `
-          <section class="panel panel-form">
-            <div class="panel-heading">
-              <p class="eyebrow">Parent Controls</p>
-              <h2>Craft a new quest</h2>
-            </div>
-            <div class="notice-banner subtle">Only the Parent page can add chores, credit shared tasks, delete tasks, and clear completed quests.</div>
-            <form id="task-form" class="task-form">
-              <label>
-                Quest name
-                <input id="task-input" type="text" maxlength="60" placeholder="Sweep the porch" required />
-              </label>
-              <div class="form-row">
-                <label>
-                  Reward
-                  <input id="reward-input" type="number" min="1" max="999" value="8" required />
-                </label>
-                <label class="pretty-select">
-                  <span class="select-label">Difficulty</span>
-                  <div class="select-shell">
-                    <select id="difficulty-input">
-                      <option value="Easy">Easy</option>
-                      <option value="Medium" selected>Medium</option>
-                      <option value="Boss">Boss</option>
-                    </select>
-                    <span class="select-arrow">v</span>
-                  </div>
-                </label>
-              </div>
-              <div class="form-row">
-                <label class="pretty-select">
-                  <span class="select-label">Chore type</span>
-                  <div class="select-shell">
-                    <select id="scope-input">
-                      <option value="shared">Shared family quest</option>
-                      <option value="assigned">Assign to one kid</option>
-                    </select>
-                    <span class="select-arrow">v</span>
-                  </div>
-                </label>
-                <label class="pretty-select" id="assignee-wrap">
-                  <span class="select-label">Assign to</span>
-                  <div class="select-shell">
-                    <select id="assignee-input">
-                      ${profiles.map((entry) => `<option value="${entry.id}">${entry.name}</option>`).join("")}
-                    </select>
-                    <span class="select-arrow">v</span>
-                  </div>
-                </label>
-              </div>
-              <div class="action-row">
-                <button class="primary-button" type="submit">Add quest</button>
-                <button class="ghost-button" id="clear-completed" type="button">Clear completed</button>
-              </div>
-            </form>
-          </section>
-        ` : ""}
+        ${pageConfig.type === "parent" ? renderParentPanels() : ""}
       </main>
     </section>
     ${renderPinDialog()}
@@ -622,7 +688,90 @@ function renderDashboardPage(pageConfig) {
 
   if (pageConfig.type === "parent") {
     bindParentControls();
+    bindImportControls();
   }
+}
+
+function renderParentPanels() {
+  return `
+    <section class="panel panel-form widget-surface">
+      <div class="panel-heading">
+        <p class="eyebrow">Parent Controls</p>
+        <h2>Craft a new quest</h2>
+      </div>
+      <div class="notice-banner subtle">Only the Parent page can add chores, credit shared tasks, delete tasks, and clear completed quests.</div>
+      <form id="task-form" class="task-form">
+        <label>
+          Quest name
+          <input id="task-input" type="text" maxlength="60" placeholder="Sweep the porch" required />
+        </label>
+        <div class="form-row">
+          <label>
+            Reward
+            <input id="reward-input" type="number" min="1" max="999" step="0.01" value="8" required />
+          </label>
+          <label class="pretty-select">
+            <span class="select-label">Difficulty</span>
+            <div class="select-shell">
+              <select id="difficulty-input">
+                <option value="Easy">Easy</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Boss">Boss</option>
+              </select>
+              <span class="select-arrow">v</span>
+            </div>
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="pretty-select">
+            <span class="select-label">Chore type</span>
+            <div class="select-shell">
+              <select id="scope-input">
+                <option value="shared">Shared family quest</option>
+                <option value="assigned">Assign to one kid</option>
+              </select>
+              <span class="select-arrow">v</span>
+            </div>
+          </label>
+          <label class="pretty-select" id="assignee-wrap">
+            <span class="select-label">Assign to</span>
+            <div class="select-shell">
+              <select id="assignee-input">
+                ${profiles.map((entry) => `<option value="${entry.id}">${entry.name}</option>`).join("")}
+              </select>
+              <span class="select-arrow">v</span>
+            </div>
+          </label>
+        </div>
+        <div class="action-row">
+          <button class="primary-button" type="submit">Add quest</button>
+          <button class="ghost-button" id="clear-completed" type="button">Clear completed</button>
+        </div>
+      </form>
+    </section>
+    <section class="panel panel-import widget-surface">
+      <div class="panel-heading">
+        <p class="eyebrow">Chore Import</p>
+        <h2>Drop in a list and get smart suggestions</h2>
+      </div>
+      <div class="notice-banner subtle">Paste chores or upload a browser-readable document. Suggestions are distributed by labels and reward values before anything is created.</div>
+      <div class="task-form">
+        <label>
+          Paste chore list
+          <textarea id="import-text" class="import-textarea" placeholder="Laundry round | laundry | 14&#10;Vacuum bedroom, bedroom, 6&#10;Trash bins | outside | 8"></textarea>
+        </label>
+        <label>
+          Upload document
+          <input id="import-file" type="file" />
+        </label>
+        <div class="action-row">
+          <button class="primary-button" id="parse-import" type="button">Build suggestions</button>
+          <button class="ghost-button" id="clear-import" type="button">Clear import</button>
+        </div>
+      </div>
+      <div id="import-preview" class="import-preview"></div>
+    </section>
+  `;
 }
 
 function renderPinDialog() {
@@ -678,16 +827,14 @@ function bindParentControls() {
       return;
     }
 
-    state.tasks.unshift({
-      id: crypto.randomUUID(),
+    state.tasks.unshift(createTaskRecord({
       title,
       reward,
       difficulty,
-      completed: false,
       scope,
       assigneeId,
-      completedById: null,
-    });
+      label: "",
+    }));
 
     saveState();
     location.reload();
@@ -699,6 +846,257 @@ function bindParentControls() {
     saveState();
     location.reload();
   });
+}
+
+function bindImportControls() {
+  const textInput = document.getElementById("import-text");
+  const fileInput = document.getElementById("import-file");
+  const parseButton = document.getElementById("parse-import");
+  const clearButton = document.getElementById("clear-import");
+  const preview = document.getElementById("import-preview");
+
+  let importSuggestions = [];
+
+  const renderPreview = () => {
+    if (!importSuggestions.length) {
+      preview.innerHTML = '<div class="empty-state">No import suggestions yet. Paste chores or upload a document to build a review list.</div>';
+      return;
+    }
+
+    preview.innerHTML = `
+      <div class="import-list">
+        ${importSuggestions.map((item, index) => `
+          <article class="import-card widget-surface">
+            <div>
+              <strong>${item.title}</strong>
+              <p class="widget-description">Label: ${item.label || "none"} | Reward: ${formatCurrency(item.reward)} | Source: ${item.source}</p>
+            </div>
+            <label class="pretty-select import-assignee">
+              <span class="select-label">Suggested assignment</span>
+              <div class="select-shell">
+                <select data-import-index="${index}">
+                  <option value="shared" ${item.scope === "shared" ? "selected" : ""}>Shared</option>
+                  ${profiles.map((profile) => `<option value="${profile.id}" ${item.assigneeId === profile.id ? "selected" : ""}>${profile.name}</option>`).join("")}
+                </select>
+                <span class="select-arrow">v</span>
+              </div>
+            </label>
+          </article>
+        `).join("")}
+      </div>
+      <div class="action-row">
+        <button class="primary-button" id="confirm-import" type="button">Create suggested chores</button>
+      </div>
+    `;
+
+    preview.querySelectorAll("[data-import-index]").forEach((select) => {
+      select.addEventListener("change", () => {
+        const item = importSuggestions[Number(select.dataset.importIndex)];
+        item.scope = select.value === "shared" ? "shared" : "assigned";
+        item.assigneeId = select.value === "shared" ? null : select.value;
+        item.reward = normalizeRewardForAssignee(item.originalReward, item.scope === "assigned" ? item.assigneeId : null);
+        renderPreview();
+      });
+    });
+
+    document.getElementById("confirm-import").addEventListener("click", () => {
+      importSuggestions.forEach((item) => {
+        state.tasks.unshift(createTaskRecord(item));
+      });
+      saveState();
+      location.reload();
+    });
+  };
+
+  const buildSuggestions = async () => {
+    const chunks = [];
+
+    if (textInput.value.trim()) {
+      chunks.push(textInput.value.trim());
+    }
+
+    if (fileInput.files && fileInput.files.length) {
+      for (const file of Array.from(fileInput.files)) {
+        try {
+          chunks.push(await file.text());
+        } catch {
+          chunks.push("");
+        }
+      }
+    }
+
+    importSuggestions = parseImportedChores(chunks.join("\n"));
+
+    if (!importSuggestions.length && chunks.length) {
+      preview.innerHTML = '<div class="empty-state">Nothing readable was found in that import. Try one chore per line with an optional label and reward.</div>';
+      return;
+    }
+
+    renderPreview();
+  };
+
+  parseButton.addEventListener("click", () => {
+    buildSuggestions();
+  });
+
+  clearButton.addEventListener("click", () => {
+    textInput.value = "";
+    fileInput.value = "";
+    importSuggestions = [];
+    renderPreview();
+  });
+
+  renderPreview();
+}
+
+function parseImportedChores(sourceText) {
+  return sourceText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => parseChoreLine(line))
+    .filter(Boolean);
+}
+
+function parseChoreLine(line) {
+  const lowered = line.toLowerCase();
+  const rewardMatch = line.match(/\$?\d+(?:\.\d+)?/);
+  const originalReward = rewardMatch ? Number(rewardMatch[0].replace("$", "")) : 5;
+  const parts = line.includes("|")
+    ? line.split("|").map((part) => part.trim()).filter(Boolean)
+    : line.split(",").map((part) => part.trim()).filter(Boolean);
+
+  const explicitProfile = profiles.find((profile) => lowered.includes(profile.name.toLowerCase()));
+  const detectedLabel = detectLabel(line, parts);
+  const title = deriveTitle(line, parts, explicitProfile?.name, rewardMatch?.[0], detectedLabel);
+  const suggestion = suggestAssignment(detectedLabel, originalReward, explicitProfile?.id, lowered);
+  const scope = suggestion === "shared" ? "shared" : "assigned";
+  const assigneeId = scope === "assigned" ? suggestion : null;
+
+  if (!title) {
+    return null;
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    source: line,
+    title,
+    difficulty: inferDifficulty(originalReward),
+    label: detectedLabel,
+    originalReward,
+    reward: normalizeRewardForAssignee(originalReward, assigneeId),
+    scope,
+    assigneeId,
+  };
+}
+
+function detectLabel(line, parts) {
+  const lowered = line.toLowerCase();
+  const knownLabels = [
+    "laundry",
+    "kitchen",
+    "bedroom",
+    "bathroom",
+    "outside",
+    "yard",
+    "dishes",
+    "trash",
+    "pets",
+    "toys",
+    "sweep",
+    "vacuum",
+    "shared",
+    "family",
+  ];
+
+  const direct = knownLabels.find((label) => lowered.includes(label));
+  if (direct) {
+    return direct;
+  }
+
+  if (parts.length >= 2 && !/\d/.test(parts[1])) {
+    return parts[1].toLowerCase();
+  }
+
+  return "";
+}
+
+function deriveTitle(line, parts, explicitName, rewardToken, label) {
+  const cleaned = (parts[0] || line)
+    .replace(explicitName || "", "")
+    .replace(rewardToken || "", "")
+    .replace(label || "", "")
+    .replace(/\$+/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  if (cleaned) {
+    return cleaned;
+  }
+
+  return line.replace(rewardToken || "", "").trim();
+}
+
+function suggestAssignment(label, reward, explicitProfileId, lowered) {
+  if (explicitProfileId) {
+    return explicitProfileId;
+  }
+
+  if (label === "shared" || label === "family" || lowered.includes("everyone")) {
+    return "shared";
+  }
+
+  if (["laundry", "yard", "outside", "trash"].includes(label) || reward >= 10) {
+    return "miles";
+  }
+
+  if (["kitchen", "dishes", "bathroom", "vacuum"].includes(label) || reward >= 6) {
+    return "logan";
+  }
+
+  if (["bedroom", "toys", "pets", "sweep"].includes(label) || reward <= 5) {
+    return "zoe";
+  }
+
+  return "shared";
+}
+
+function inferDifficulty(reward) {
+  if (reward >= 12) {
+    return "Boss";
+  }
+
+  if (reward >= 6) {
+    return "Medium";
+  }
+
+  return "Easy";
+}
+
+function createTaskRecord(taskLike) {
+  const scope = taskLike.scope === "assigned" ? "assigned" : "shared";
+  const assigneeId = scope === "assigned" ? taskLike.assigneeId : null;
+  const reward = normalizeRewardForAssignee(taskLike.reward, assigneeId);
+
+  return {
+    id: taskLike.id || crypto.randomUUID(),
+    title: taskLike.title,
+    reward,
+    difficulty: difficultyXp[taskLike.difficulty] ? taskLike.difficulty : inferDifficulty(reward),
+    completed: false,
+    scope,
+    assigneeId,
+    completedById: null,
+    label: taskLike.label || "",
+  };
+}
+
+function normalizeRewardForAssignee(reward, assigneeId) {
+  const numericReward = Number.isFinite(Number(reward)) ? Number(reward) : 0;
+  if (assigneeId === "miles") {
+    return Math.ceil(numericReward);
+  }
+  return numericReward;
 }
 
 function renderTaskRegion(pageConfig, metrics) {
@@ -742,6 +1140,7 @@ function renderTaskCard(task, parentMode) {
   const assignedName = task.assigneeId ? profileMap[task.assigneeId]?.name : null;
   const creditedName = task.completedById ? profileMap[task.completedById]?.name : null;
   const creditValue = task.scope === "assigned" && task.assigneeId ? task.assigneeId : task.completedById || profiles[0].id;
+  const metaLabel = task.label ? `<span class="label-pill">${task.label}</span>` : "";
 
   return `
     <li class="task-card ${task.completed ? "completed" : ""}">
@@ -749,10 +1148,11 @@ function renderTaskCard(task, parentMode) {
       <div class="task-content">
         <div class="task-topline">
           <h3 class="task-title">${task.title}</h3>
-          <span class="task-reward">$${task.reward}</span>
+          <span class="task-reward">${formatCurrency(task.reward)}</span>
         </div>
         <div class="task-meta">
           <span class="difficulty-pill">${task.difficulty}</span>
+          ${metaLabel}
           <span class="scope-pill">${task.scope === "shared" ? "Shared quest" : `Assigned to ${assignedName}`}</span>
           <span class="credit-pill">${
             task.completed
@@ -787,10 +1187,11 @@ function renderProfileSummaryRegion(pageConfig) {
     .map((profile) => {
       const metrics = getProfileMetrics(profile.id);
       return `
-        <article class="mini-stat kid-mini-card ${pageConfig.profileId === profile.id ? "current" : ""}">
+        <article class="mini-stat widget-card kid-mini-card ${pageConfig.profileId === profile.id ? "current" : ""}">
           <span>${profile.name}</span>
           <strong>${metrics.openTasks.length} open</strong>
-          <span>$${metrics.earnings} earned</span>
+          <p class="widget-description">${getMetricDescription("money", { owner: profile.name, value: metrics.earnings })}</p>
+          <span>${formatCurrency(metrics.earnings)} earned</span>
         </article>
       `;
     })
@@ -810,7 +1211,7 @@ function renderLedgerRegion(pageConfig, metrics) {
     .map((entry) => `
       <div class="ledger-item">
         <span>${entry.profileName}: ${entry.title}</span>
-        <strong>+$${entry.reward}</strong>
+        <strong>+${formatCurrency(entry.reward)}</strong>
       </div>
     `)
     .join("");
@@ -988,4 +1389,6 @@ function openPinModal(message, onSuccess) {
   dialog.showModal();
   input.focus();
 }
+
+
 
