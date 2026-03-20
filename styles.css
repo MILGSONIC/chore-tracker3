@@ -231,6 +231,23 @@ select {
   font-weight: 700;
 }
 
+.access-banner {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(239, 111, 108, 0.2);
+  background: rgba(239, 111, 108, 0.1);
+  color: #7c3a38;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.access-banner.unlocked {
+  border-color: rgba(45, 156, 149, 0.22);
+  background: rgba(45, 156, 149, 0.12);
+  color: #1c635f;
+}
+
 .dashboard {
   display: grid;
   grid-template-columns: 0.95fr 1.3fr 0.8fr;
@@ -363,6 +380,17 @@ select {
   position: relative;
 }
 
+.task-toggle:disabled,
+.delete-button:disabled,
+.task-form button:disabled,
+.task-form input:disabled,
+.task-form select:disabled,
+.hero-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
 .task-card.completed .task-toggle {
   background: var(--teal);
   border-color: var(--teal);
@@ -467,6 +495,71 @@ select {
   line-height: 1.7;
 }
 
+.pin-modal {
+  width: min(460px, calc(100vw - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: 28px;
+  background: transparent;
+}
+
+.pin-modal::backdrop {
+  background: rgba(20, 18, 15, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.pin-modal-card {
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  border-radius: 28px;
+  background: #fffaf1;
+  box-shadow: var(--shadow);
+}
+
+.pin-modal-card h2,
+.pin-copy,
+.pin-error {
+  margin: 0;
+}
+
+.pin-modal-card label {
+  display: grid;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.pin-modal-card input {
+  width: 100%;
+  padding: 15px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  outline: none;
+}
+
+.pin-modal-card input:focus {
+  border-color: rgba(45, 156, 149, 0.55);
+  box-shadow: 0 0 0 4px rgba(45, 156, 149, 0.12);
+}
+
+.pin-copy {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.pin-error {
+  min-height: 1.4em;
+  color: #b33c39;
+  font-weight: 700;
+}
+
+.pin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 @media (max-width: 1040px) {
   .hero,
   .dashboard {
@@ -494,6 +587,10 @@ select {
   .quest-summary,
   .score-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pin-actions {
+    flex-direction: column-reverse;
   }
 
   .task-card {

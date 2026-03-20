@@ -1,4 +1,6 @@
 const STORAGE_KEY = "chore-quest-state";
+const PARENT_SESSION_KEY = "chore-quest-parent-unlocked";
+const PARENT_PIN = "4826";
 const baseTasks = [
   { id: crypto.randomUUID(), title: "Make the bed", reward: 4, difficulty: "Easy", completed: false },
   { id: crypto.randomUUID(), title: "Wash the dishes", reward: 9, difficulty: "Medium", completed: false },
@@ -20,6 +22,10 @@ const rankTitles = [
 ];
 
 const state = loadState();
+const parentAccess = {
+  unlocked: sessionStorage.getItem(PARENT_SESSION_KEY) === "true",
+  pendingAction: null,
+};
 
 const els = {
   form: document.getElementById("task-form"),
@@ -43,7 +49,15 @@ const els = {
   taskTemplate: document.getElementById("task-template"),
   focusForm: document.getElementById("focus-form"),
   clearCompleted: document.getElementById("clear-completed"),
+  parentAccess: document.getElementById("parent-access"),
   todayLabel: document.getElementById("today-label"),
+  accessBanner: document.getElementById("access-banner"),
+  pinModal: document.getElementById("pin-modal"),
+  pinForm: document.getElementById("pin-form"),
+  pinInput: document.getElementById("pin-input"),
+  pinError: document.getElementById("pin-error"),
+  pinCopy: document.getElementById("pin-copy"),
+  pinCancel: document.getElementById("pin-cancel"),
 };
 
 els.todayLabel.textContent = new Intl.DateTimeFormat("en-US", {
@@ -52,8 +66,21 @@ els.todayLabel.textContent = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 }).format(new Date());
 
+els.parentAccess.addEventListener("click", () => {
+  if (parentAccess.unlocked) {
+    lockParentAccess();
+    return;
+  }
+
+  requestParentAccess("Enter your parent PIN to unlock chore controls.");
+});
+
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
+
+  if (!ensureParentAccess("Enter your parent PIN to add a new quest.")) {
+    return;
+  }
 
   const title = els.taskInput.value.trim();
   const reward = Number(els.rewardInput.value);
@@ -80,14 +107,52 @@ els.form.addEventListener("submit", (event) => {
 });
 
 els.focusForm.addEventListener("click", () => {
-  els.taskInput.focus();
-  els.taskInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (!parentAccess.unlocked) {
+    requestParentAccess("Enter your parent PIN to jump into the add quest form.");
+    return;
+  }
+
+  focusTaskForm();
 });
 
 els.clearCompleted.addEventListener("click", () => {
+  if (!ensureParentAccess("Enter your parent PIN to clear completed chores.")) {
+    return;
+  }
+
   state.tasks = state.tasks.filter((task) => !task.completed);
   saveState();
   render();
+});
+
+els.pinForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  if (els.pinInput.value === PARENT_PIN) {
+    unlockParentAccess();
+
+    if (typeof parentAccess.pendingAction === "function") {
+      const pendingAction = parentAccess.pendingAction;
+      parentAccess.pendingAction = null;
+      pendingAction();
+    }
+
+    closePinModal();
+    render();
+    return;
+  }
+
+  els.pinError.textContent = "That PIN does not match. Try again.";
+  els.pinInput.select();
+});
+
+els.pinCancel.addEventListener("click", () => {
+  parentAccess.pendingAction = null;
+  closePinModal();
+});
+
+els.pinModal.addEventListener("cancel", () => {
+  parentAccess.pendingAction = null;
 });
 
 function loadState() {
@@ -116,6 +181,51 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function focusTaskForm() {
+  els.taskInput.focus();
+  els.taskInput.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function ensureParentAccess(message, action) {
+  if (parentAccess.unlocked) {
+    return true;
+  }
+
+  requestParentAccess(message, action);
+  return false;
+}
+
+function requestParentAccess(message, action) {
+  parentAccess.pendingAction = typeof action === "function" ? action : null;
+  els.pinCopy.textContent = message;
+  els.pinError.textContent = "";
+
+  if (!els.pinModal.open) {
+    els.pinModal.showModal();
+  }
+
+  els.pinInput.value = "";
+  els.pinInput.focus();
+}
+
+function closePinModal() {
+  if (els.pinModal.open) {
+    els.pinModal.close();
+  }
+}
+
+function unlockParentAccess() {
+  parentAccess.unlocked = true;
+  sessionStorage.setItem(PARENT_SESSION_KEY, "true");
+}
+
+function lockParentAccess() {
+  parentAccess.unlocked = false;
+  parentAccess.pendingAction = null;
+  sessionStorage.removeItem(PARENT_SESSION_KEY);
+  render();
 }
 
 function toggleTask(id) {
@@ -257,8 +367,24 @@ function renderTasks() {
       item.classList.add("completed");
     }
 
-    toggleButton.addEventListener("click", () => toggleTask(task.id));
-    deleteButton.addEventListener("click", () => deleteTask(task.id));
+    toggleButton.disabled = !parentAccess.unlocked;
+    deleteButton.disabled = !parentAccess.unlocked;
+
+    toggleButton.addEventListener("click", () => {
+      if (!ensureParentAccess("Enter your parent PIN to check off chores.", () => toggleTask(task.id))) {
+        return;
+      }
+
+      toggleTask(task.id);
+    });
+
+    deleteButton.addEventListener("click", () => {
+      if (!ensureParentAccess("Enter your parent PIN to remove chores.", () => deleteTask(task.id))) {
+        return;
+      }
+
+      deleteTask(task.id);
+    });
 
     els.taskList.append(fragment);
   });
@@ -284,6 +410,23 @@ function render() {
   els.rankTitle.textContent = rankTitles[rankIndex];
   els.nextTip.textContent = getTip(metrics);
   els.statusNote.textContent = getStatusMessage(metrics);
+  els.parentAccess.textContent = parentAccess.unlocked ? "Lock Parent Access" : "Parent Access";
+  els.accessBanner.textContent = parentAccess.unlocked
+    ? "Parent controls are unlocked for this session."
+    : "Locked for kids. A parent PIN is required to add, complete, clear, or remove chores.";
+  els.accessBanner.classList.toggle("unlocked", parentAccess.unlocked);
+
+  const formControls = [
+    els.taskInput,
+    els.rewardInput,
+    els.difficultyInput,
+    els.form.querySelector('button[type="submit"]'),
+    els.clearCompleted,
+  ];
+
+  formControls.forEach((control) => {
+    control.disabled = !parentAccess.unlocked;
+  });
 }
 
 render();

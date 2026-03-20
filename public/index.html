@@ -30,6 +30,9 @@
             <button class="ghost-button" id="clear-completed">
               Clear completed
             </button>
+            <button class="ghost-button" id="parent-access" type="button">
+              Parent Access
+            </button>
           </div>
         </div>
 
@@ -79,6 +82,10 @@
           <div class="section-heading">
             <p class="eyebrow">Create Quest</p>
             <h2>Add a chore to the board</h2>
+          </div>
+
+          <div class="access-banner" id="access-banner">
+            Locked for kids. A parent PIN is required to add, complete, clear, or remove chores.
           </div>
 
           <form id="task-form" class="task-form">
@@ -187,6 +194,35 @@
         <button class="delete-button" type="button" aria-label="Delete task">Remove</button>
       </li>
     </template>
+
+    <dialog class="pin-modal" id="pin-modal">
+      <form class="pin-modal-card" id="pin-form" method="dialog">
+        <p class="eyebrow">Parent Lock</p>
+        <h2>Enter the parent PIN</h2>
+        <p class="pin-copy" id="pin-copy">
+          Only parents can manage chores while the board is locked.
+        </p>
+        <label>
+          Parent PIN
+          <input
+            id="pin-input"
+            name="pin"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="Enter PIN"
+            required
+          />
+        </label>
+        <p class="pin-error" id="pin-error" aria-live="polite"></p>
+        <div class="pin-actions">
+          <button class="ghost-button" id="pin-cancel" type="button">Cancel</button>
+          <button class="primary-button" type="submit">Unlock</button>
+        </div>
+      </form>
+    </dialog>
 
     <script src="./script.js"></script>
   </body>
