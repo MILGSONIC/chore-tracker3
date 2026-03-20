@@ -1,0 +1,9 @@
+name = "chore-tracker3"
+compatibility_date = "2026-03-20"
+
+[assets]
+directory = "./public"
+not_found_handling = "single-page-application"
+
+[observability.logs]
+enabled = true

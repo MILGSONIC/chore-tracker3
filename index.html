@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chore Quest</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Manrope:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-left"></div>
+      <div class="ambient ambient-right"></div>
+
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Household Hustle, But Make It Fun</p>
+          <h1>Turn chores into quests with cash, streaks, and level-ups.</h1>
+          <p class="hero-text">
+            Keep track of simple tasks, assign little dollar rewards, and build
+            momentum like you are clearing a daily adventure board.
+          </p>
+          <div class="hero-actions">
+            <button class="primary-button" id="focus-form">Add a quest</button>
+            <button class="ghost-button" id="clear-completed">
+              Clear completed
+            </button>
+          </div>
+        </div>
+
+        <section class="hero-panel">
+          <div class="panel-topline">
+            <span>Player Snapshot</span>
+            <span id="today-label"></span>
+          </div>
+
+          <div class="score-grid">
+            <article class="score-card">
+              <p>Level</p>
+              <strong id="level-value">1</strong>
+            </article>
+            <article class="score-card">
+              <p>XP</p>
+              <strong id="xp-value">0 / 100</strong>
+            </article>
+            <article class="score-card">
+              <p>Earnings</p>
+              <strong id="earnings-value">$0</strong>
+            </article>
+            <article class="score-card">
+              <p>Combo</p>
+              <strong id="combo-value">x1</strong>
+            </article>
+          </div>
+
+          <div class="progress-block">
+            <div class="progress-label">
+              <span>Progress to next level</span>
+              <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="status-note" id="status-note">
+            Start with one small win. Momentum stacks fast.
+          </div>
+        </section>
+      </header>
+
+      <main class="dashboard">
+        <section class="board board-form">
+          <div class="section-heading">
+            <p class="eyebrow">Create Quest</p>
+            <h2>Add a chore to the board</h2>
+          </div>
+
+          <form id="task-form" class="task-form">
+            <label>
+              Quest name
+              <input
+                id="task-input"
+                name="task"
+                type="text"
+                placeholder="Vacuum the living room"
+                maxlength="60"
+                required
+              />
+            </label>
+
+            <div class="form-row">
+              <label>
+                Reward
+                <div class="currency-input">
+                  <span>$</span>
+                  <input
+                    id="reward-input"
+                    name="reward"
+                    type="number"
+                    min="1"
+                    max="999"
+                    value="8"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label>
+                Difficulty
+                <select id="difficulty-input" name="difficulty">
+                  <option value="Easy">Easy</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Boss">Boss</option>
+                </select>
+              </label>
+            </div>
+
+            <button class="primary-button" type="submit">Add quest</button>
+          </form>
+        </section>
+
+        <section class="board board-list">
+          <div class="section-heading">
+            <p class="eyebrow">Quest Board</p>
+            <h2>Today's chores</h2>
+          </div>
+
+          <div class="quest-summary">
+            <div>
+              <span>Open quests</span>
+              <strong id="open-count">0</strong>
+            </div>
+            <div>
+              <span>Completed</span>
+              <strong id="completed-count">0</strong>
+            </div>
+            <div>
+              <span>Potential rewards</span>
+              <strong id="potential-value">$0</strong>
+            </div>
+          </div>
+
+          <ul id="task-list" class="task-list" aria-live="polite"></ul>
+        </section>
+
+        <aside class="board board-side">
+          <div class="section-heading">
+            <p class="eyebrow">Motivation Engine</p>
+            <h2>Win conditions</h2>
+          </div>
+
+          <div class="mini-panel">
+            <span>Daily title</span>
+            <strong id="rank-title">Rookie Spark</strong>
+          </div>
+          <div class="mini-panel">
+            <span>Best move right now</span>
+            <strong id="next-tip">Complete one easy quest to start your combo.</strong>
+          </div>
+          <div class="mini-panel ledger">
+            <span>Reward ledger</span>
+            <div id="ledger-list"></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <template id="task-template">
+      <li class="task-card">
+        <button class="task-toggle" type="button" aria-label="Toggle task complete"></button>
+        <div class="task-content">
+          <div class="task-topline">
+            <h3 class="task-title"></h3>
+            <span class="task-reward"></span>
+          </div>
+          <div class="task-meta">
+            <span class="difficulty-pill"></span>
+            <span class="xp-pill"></span>
+          </div>
+        </div>
+        <button class="delete-button" type="button" aria-label="Delete task">Remove</button>
+      </li>
+    </template>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
