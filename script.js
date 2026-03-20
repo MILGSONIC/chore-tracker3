@@ -443,15 +443,32 @@ function renderHomePage() {
           <div id="home-preview-panel"></div>
         </div>
         <div class="home-story-grid">
-          <article class="story-card reveal rise-3">
-            <p class="eyebrow">Quest Flavor</p>
-            <h2>Whimsy, with room to breathe</h2>
-            <p>Storybook mood stays, but the boards read faster.</p>
+          <article class="story-card story-card-flavor reveal rise-3">
+            <div class="story-card-copy">
+              <p class="eyebrow">Quest Flavor</p>
+              <h2>Whimsy, with room to breathe</h2>
+              <p>Storybook mood stays, but the boards read faster.</p>
+            </div>
+            <div class="story-card-ornament" aria-hidden="true">
+              <span class="ornament-seal"></span>
+              <span class="ornament-path ornament-path-one"></span>
+              <span class="ornament-path ornament-path-two"></span>
+              <span class="ornament-star ornament-star-one"></span>
+              <span class="ornament-star ornament-star-two"></span>
+            </div>
           </article>
-          <article class="story-card reveal rise-4">
-            <p class="eyebrow">Template Magic</p>
-            <h2>Each page keeps three looks</h2>
-            <p>Each realm remembers its own style and card skin.</p>
+          <article class="story-card story-card-magic reveal rise-4">
+            <div class="story-card-copy">
+              <p class="eyebrow">Template Magic</p>
+              <h2>Each page keeps three looks</h2>
+              <p>Each realm remembers its own style and card skin.</p>
+            </div>
+            <div class="story-card-ornament" aria-hidden="true">
+              <span class="ornament-frame"></span>
+              <span class="ornament-orb ornament-orb-one"></span>
+              <span class="ornament-orb ornament-orb-two"></span>
+              <span class="ornament-star ornament-star-three"></span>
+            </div>
           </article>
         </div>
       </section>
@@ -533,12 +550,35 @@ function renderHomePreview(pageId) {
     const familyMetrics = getProfileMetrics("parent");
     panel.innerHTML = `
       <div class="preview-card preview-home widget-surface">
-        <p class="eyebrow">Storybook Hub</p>
-        <h2>A whimsical launchpad for every family quest.</h2>
-        <div class="preview-badges">
-          <span>5 pages</span>
-          <span>3 templates each</span>
-          <span>Fantasy home hub</span>
+        <div class="preview-home-copy">
+          <p class="eyebrow">Storybook Hub</p>
+          <h2>A whimsical launchpad for every family quest.</h2>
+          <div class="preview-badges">
+            <span>5 pages</span>
+            <span>3 templates each</span>
+            <span>Fantasy home hub</span>
+          </div>
+        </div>
+        <div class="preview-home-ornament" aria-hidden="true">
+          <div class="preview-crest">
+            <span class="preview-crest-ring"></span>
+            <span class="preview-crest-core">CQ</span>
+          </div>
+          <div class="preview-constellation">
+            <span class="constellation-star star-a"></span>
+            <span class="constellation-star star-b"></span>
+            <span class="constellation-star star-c"></span>
+            <span class="constellation-star star-d"></span>
+            <span class="constellation-line line-a"></span>
+            <span class="constellation-line line-b"></span>
+            <span class="constellation-line line-c"></span>
+          </div>
+          <div class="preview-map-panel">
+            <span class="map-route"></span>
+            <span class="map-marker marker-one"></span>
+            <span class="map-marker marker-two"></span>
+            <span class="map-marker marker-three"></span>
+          </div>
         </div>
         <div class="preview-stats">
           ${renderMetricWidget("Family Treasure", formatCurrency(familyMetrics.earnings), "money", "Family", familyMetrics.earnings)}
