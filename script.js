@@ -165,12 +165,23 @@ const rankTitles = [
   "Legend of the Living Room",
 ];
 
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const homePreviewCache = new Map();
+
 const state = loadState();
 const templatePrefs = loadTemplatePrefs();
 const widgetStylePrefs = loadWidgetStylePrefs();
 const parentAccess = {
   unlocked: sessionStorage.getItem(PARENT_SESSION_KEY) === "true",
 };
+
+applyPerformanceMode();
+
+if (typeof reducedMotionQuery.addEventListener === "function") {
+  reducedMotionQuery.addEventListener("change", applyPerformanceMode);
+} else if (typeof reducedMotionQuery.addListener === "function") {
+  reducedMotionQuery.addListener(applyPerformanceMode);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const pageId = document.body.dataset.page;
@@ -199,6 +210,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderDashboardPage(pageConfig);
 });
+
+function getPerformanceMode() {
+  if (reducedMotionQuery.matches) {
+    return "reduced";
+  }
+
+  const { hardwareConcurrency, deviceMemory } = navigator;
+  const limitedCpu = Number.isFinite(hardwareConcurrency) && hardwareConcurrency <= 4;
+  const limitedMemory = Number.isFinite(deviceMemory) && deviceMemory <= 4;
+
+  return limitedCpu || limitedMemory ? "reduced" : "default";
+}
+
+function applyPerformanceMode() {
+  const mode = getPerformanceMode();
+  document.documentElement.dataset.performance = mode;
+
+  if (document.body) {
+    document.body.dataset.performance = mode;
+  }
+}
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -255,6 +287,7 @@ function migrateState(parsed) {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  homePreviewCache.clear();
 }
 
 function loadTemplatePrefs() {
@@ -557,9 +590,51 @@ function renderHomePreview(pageId) {
     return;
   }
 
+  const stateKey = getHomePreviewStateKey();
+  if (panel.dataset.previewPage === pageId && panel.dataset.previewStateKey === stateKey) {
+    return;
+  }
+
+  if (!homePreviewCache.has(stateKey)) {
+    homePreviewCache.clear();
+    homePreviewCache.set(stateKey, new Map());
+  }
+
+  const previewStateCache = homePreviewCache.get(stateKey);
+
+  if (!previewStateCache.has(pageId)) {
+    previewStateCache.set(pageId, buildHomePreviewMarkup(pageId));
+  }
+
+  panel.innerHTML = previewStateCache.get(pageId);
+  panel.dataset.previewPage = pageId;
+  panel.dataset.previewStateKey = stateKey;
+}
+
+function getHomePreviewStateKey() {
+  return JSON.stringify({
+    tasks: state.tasks.map((task) => ({
+      id: task.id,
+      completed: task.completed,
+      reward: task.reward,
+      scope: task.scope,
+      assigneeId: task.assigneeId,
+      completedById: task.completedById,
+    })),
+    history: state.history.map((entry) => ({
+      id: entry.id,
+      reward: entry.reward,
+      profileId: entry.profileId,
+      title: entry.title,
+      timestamp: entry.timestamp,
+    })),
+  });
+}
+
+function buildHomePreviewMarkup(pageId) {
   if (pageId === "home") {
     const familyMetrics = getProfileMetrics("parent");
-    panel.innerHTML = `
+    return `
       <div class="preview-card preview-home widget-surface">
         <div class="preview-home-copy">
           <p class="eyebrow">Storybook Hub</p>
@@ -607,12 +682,11 @@ function renderHomePreview(pageId) {
         </div>
       </div>
     `;
-    return;
   }
 
   if (pageId === "parent") {
     const familyMetrics = getProfileMetrics("parent");
-    panel.innerHTML = `
+    return `
       <div class="preview-card widget-surface reveal rise-3">
         <p class="eyebrow">Parent Hall</p>
         <h2>Manage chores, rewards, and every board.</h2>
@@ -623,14 +697,13 @@ function renderHomePreview(pageId) {
         </div>
       </div>
     `;
-    return;
   }
 
   const profileId = pageConfigs[pageId].profileId;
   const profile = profileMap[profileId];
   const metrics = getProfileMetrics(profileId);
 
-  panel.innerHTML = `
+  return `
     <div class="preview-card widget-surface reveal rise-3">
       <p class="eyebrow">${profile.name}'s Realm</p>
       <h2>${profile.name}'s shared and assigned quests.</h2>
