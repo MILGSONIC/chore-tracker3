@@ -18,6 +18,17 @@
   --teal: #477f76;
   --sky: #6f84c9;
   --berry: #944f63;
+  --accent-1: #d89a32;
+  --accent-2: #ca6d54;
+  --accent-3: #6f84c9;
+  --accent-glow: rgba(255, 244, 210, 0.5);
+  --chip-bg: rgba(255, 255, 255, 0.62);
+  --chip-border: rgba(90, 61, 38, 0.11);
+  --ornament-fill: linear-gradient(145deg, rgba(255, 251, 242, 0.72), rgba(242, 229, 204, 0.54));
+  --ornament-border: rgba(216, 154, 50, 0.16);
+  --ornament-inner: rgba(141, 93, 23, 0.12);
+  --hero-wash: linear-gradient(115deg, rgba(111, 132, 201, 0.08), transparent 48%);
+  --surface-sheen: rgba(255, 255, 255, 0.35);
   --shadow-soft: 0 28px 70px rgba(74, 43, 18, 0.14);
   --shadow-card: 0 22px 52px rgba(74, 43, 18, 0.12);
   --shadow-lift: 0 28px 65px rgba(57, 31, 14, 0.18);
@@ -56,6 +67,7 @@ body {
     radial-gradient(circle at 8% 12%, var(--page-glow-1), transparent 26%),
     radial-gradient(circle at 88% 18%, var(--page-glow-2), transparent 24%),
     linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 52%, var(--bg-bottom) 100%);
+  transition: background var(--smooth), color var(--fast);
 }
 
 body::before,
@@ -122,6 +134,40 @@ body[data-page="home"][data-template="starlit"] {
   --bg-bottom: #d5c3ba;
   --page-glow-1: rgba(121, 132, 211, 0.28);
   --page-glow-2: rgba(241, 186, 105, 0.24);
+  --accent-1: #7f8add;
+  --accent-2: #f0b86f;
+  --accent-3: #a46786;
+  --ornament-fill: linear-gradient(145deg, rgba(248, 244, 255, 0.72), rgba(228, 217, 245, 0.58));
+}
+
+body[data-page="home"][data-template="celestial"] {
+  --bg-top: #eef2ff;
+  --bg-mid: #d6ddf6;
+  --bg-bottom: #adb7df;
+  --page-glow-1: rgba(122, 147, 225, 0.3);
+  --page-glow-2: rgba(255, 215, 144, 0.22);
+  --accent-1: #7a93e1;
+  --accent-2: #ffd790;
+  --accent-3: #5161aa;
+  --accent-glow: rgba(240, 245, 255, 0.7);
+  --chip-bg: rgba(241, 246, 255, 0.72);
+  --ornament-fill: linear-gradient(145deg, rgba(242, 246, 255, 0.78), rgba(216, 226, 248, 0.56));
+  --ornament-border: rgba(122, 147, 225, 0.18);
+  --hero-wash: linear-gradient(115deg, rgba(122, 147, 225, 0.14), transparent 54%);
+}
+
+body[data-page="home"][data-template="festival"] {
+  --bg-top: #fff8ef;
+  --bg-mid: #f4dcc0;
+  --bg-bottom: #dcae8d;
+  --page-glow-1: rgba(233, 119, 78, 0.26);
+  --page-glow-2: rgba(247, 202, 107, 0.22);
+  --accent-1: #e9774e;
+  --accent-2: #f7ca6b;
+  --accent-3: #9d566d;
+  --chip-bg: rgba(255, 246, 232, 0.72);
+  --ornament-fill: linear-gradient(145deg, rgba(255, 246, 235, 0.78), rgba(245, 218, 194, 0.6));
+  --ornament-border: rgba(233, 119, 78, 0.16);
 }
 
 body[data-page="parent"] {
@@ -146,6 +192,38 @@ body[data-page="parent"][data-template="warden"] {
   --bg-bottom: #b9c3b3;
   --page-glow-1: rgba(70, 127, 118, 0.2);
   --page-glow-2: rgba(220, 187, 114, 0.16);
+  --accent-1: #477f76;
+  --accent-2: #dcb772;
+  --accent-3: #7a8b74;
+}
+
+body[data-page="parent"][data-template="archive"] {
+  --bg-top: #f7f1e7;
+  --bg-mid: #e4d4bc;
+  --bg-bottom: #c5ab89;
+  --page-glow-1: rgba(176, 126, 74, 0.22);
+  --page-glow-2: rgba(132, 98, 68, 0.16);
+  --accent-1: #b07e4a;
+  --accent-2: #8b6245;
+  --accent-3: #5e77a3;
+  --chip-bg: rgba(255, 249, 238, 0.7);
+  --ornament-fill: linear-gradient(145deg, rgba(252, 246, 236, 0.78), rgba(234, 220, 194, 0.6));
+  --ornament-border: rgba(176, 126, 74, 0.18);
+  --hero-wash: linear-gradient(115deg, rgba(176, 126, 74, 0.12), transparent 50%);
+}
+
+body[data-page="parent"][data-template="royal"] {
+  --bg-top: #f8f4ff;
+  --bg-mid: #ddd5f1;
+  --bg-bottom: #b8add7;
+  --page-glow-1: rgba(124, 98, 196, 0.24);
+  --page-glow-2: rgba(236, 190, 116, 0.18);
+  --accent-1: #7c62c4;
+  --accent-2: #ecbe74;
+  --accent-3: #4c5f9e;
+  --chip-bg: rgba(245, 241, 255, 0.72);
+  --ornament-fill: linear-gradient(145deg, rgba(248, 245, 255, 0.78), rgba(226, 218, 245, 0.6));
+  --ornament-border: rgba(124, 98, 196, 0.16);
 }
 
 body[data-page="miles"] {
@@ -170,6 +248,34 @@ body[data-page="miles"][data-template="storm"] {
   --bg-bottom: #b6b1ce;
   --page-glow-1: rgba(111, 132, 201, 0.24);
   --page-glow-2: rgba(195, 126, 98, 0.14);
+  --accent-1: #6f84c9;
+  --accent-2: #c37e62;
+  --accent-3: #5b4f7a;
+}
+
+body[data-page="miles"][data-template="lava"] {
+  --bg-top: #fff2e8;
+  --bg-mid: #efc5ad;
+  --bg-bottom: #c87b5e;
+  --page-glow-1: rgba(237, 109, 60, 0.28);
+  --page-glow-2: rgba(255, 187, 92, 0.18);
+  --accent-1: #ed6d3c;
+  --accent-2: #ffbb5c;
+  --accent-3: #7e3327;
+  --ornament-fill: linear-gradient(145deg, rgba(255, 244, 236, 0.76), rgba(245, 206, 183, 0.58));
+  --ornament-border: rgba(237, 109, 60, 0.18);
+}
+
+body[data-page="miles"][data-template="thunder"] {
+  --bg-top: #eef4ff;
+  --bg-mid: #cedcf7;
+  --bg-bottom: #98abd9;
+  --page-glow-1: rgba(93, 122, 223, 0.24);
+  --page-glow-2: rgba(254, 221, 137, 0.16);
+  --accent-1: #5d7adf;
+  --accent-2: #fedd89;
+  --accent-3: #304b8a;
+  --chip-bg: rgba(240, 245, 255, 0.72);
 }
 
 body[data-page="logan"] {
@@ -194,6 +300,33 @@ body[data-page="logan"][data-template="glow"] {
   --bg-bottom: #d0c89f;
   --page-glow-1: rgba(217, 172, 80, 0.24);
   --page-glow-2: rgba(120, 143, 95, 0.14);
+  --accent-1: #d9ac50;
+  --accent-2: #78905f;
+  --accent-3: #4b7267;
+}
+
+body[data-page="logan"][data-template="ranger"] {
+  --bg-top: #f2f8ee;
+  --bg-mid: #d3e2c6;
+  --bg-bottom: #9fb38c;
+  --page-glow-1: rgba(92, 133, 83, 0.26);
+  --page-glow-2: rgba(209, 179, 103, 0.14);
+  --accent-1: #5c8553;
+  --accent-2: #d1b367;
+  --accent-3: #3f6e60;
+  --ornament-fill: linear-gradient(145deg, rgba(245, 251, 241, 0.76), rgba(219, 234, 208, 0.58));
+}
+
+body[data-page="logan"][data-template="creek"] {
+  --bg-top: #eff9fb;
+  --bg-mid: #cde4ea;
+  --bg-bottom: #9cbcc0;
+  --page-glow-1: rgba(85, 155, 170, 0.24);
+  --page-glow-2: rgba(124, 170, 118, 0.14);
+  --accent-1: #559baa;
+  --accent-2: #7caa76;
+  --accent-3: #3a6678;
+  --chip-bg: rgba(242, 251, 252, 0.72);
 }
 
 body[data-page="zoe"] {
@@ -218,6 +351,35 @@ body[data-page="zoe"][data-template="sunbeam"] {
   --bg-bottom: #dec18f;
   --page-glow-1: rgba(240, 186, 95, 0.28);
   --page-glow-2: rgba(223, 146, 170, 0.14);
+  --accent-1: #f0ba5f;
+  --accent-2: #df92aa;
+  --accent-3: #ca79c0;
+}
+
+body[data-page="zoe"][data-template="moon"] {
+  --bg-top: #f8f5ff;
+  --bg-mid: #e3dbf5;
+  --bg-bottom: #c8bce8;
+  --page-glow-1: rgba(159, 140, 227, 0.24);
+  --page-glow-2: rgba(255, 210, 177, 0.16);
+  --accent-1: #9f8ce3;
+  --accent-2: #ffd2b1;
+  --accent-3: #7487d8;
+  --chip-bg: rgba(248, 244, 255, 0.72);
+  --ornament-fill: linear-gradient(145deg, rgba(248, 244, 255, 0.78), rgba(233, 224, 249, 0.58));
+}
+
+body[data-page="zoe"][data-template="carnival"] {
+  --bg-top: #fff6f7;
+  --bg-mid: #f7d7df;
+  --bg-bottom: #e4a8bf;
+  --page-glow-1: rgba(244, 128, 165, 0.24);
+  --page-glow-2: rgba(251, 196, 103, 0.18);
+  --accent-1: #f480a5;
+  --accent-2: #fbc467;
+  --accent-3: #8f7ce2;
+  --ornament-fill: linear-gradient(145deg, rgba(255, 245, 248, 0.78), rgba(246, 220, 229, 0.58));
+  --ornament-border: rgba(244, 128, 165, 0.16);
 }
 
 button,
@@ -320,7 +482,7 @@ body[data-performance="reduced"] .widget-surface::after {
   position: absolute;
   inset: auto -10% -44% 42%;
   height: 180px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.35), transparent 66%);
+  background: radial-gradient(circle, var(--surface-sheen), transparent 66%);
   pointer-events: none;
 }
 
@@ -353,9 +515,9 @@ body[data-performance="reduced"] .widget-surface::after {
   height: 62px;
   border-radius: 22px;
   background:
-    radial-gradient(circle at 30% 28%, rgba(255, 247, 219, 0.78), transparent 34%),
-    linear-gradient(145deg, #f6c86c, #c98423);
-  color: #3b2413;
+    radial-gradient(circle at 30% 28%, var(--accent-glow), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--accent-2) 32%, white), var(--accent-1));
+  color: color-mix(in srgb, var(--accent-3) 42%, #2d1c12);
   font-family: "Cormorant Garamond", serif;
   font-size: 1.55rem;
   font-weight: 700;
@@ -363,6 +525,7 @@ body[data-performance="reduced"] .widget-surface::after {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.68),
     0 16px 30px rgba(151, 98, 28, 0.25);
+  transition: transform var(--smooth), box-shadow var(--smooth), background var(--smooth);
 }
 
 .brand-copy {
@@ -632,6 +795,7 @@ body[data-performance="reduced"] .realm-link.active {
 .page-hero,
 .panel {
   padding: var(--panel-padding);
+  transition: transform var(--smooth), box-shadow var(--smooth), background var(--smooth), border-color var(--fast);
 }
 
 .preview-stage {
@@ -678,8 +842,8 @@ body[data-performance="reduced"] .realm-link.active {
 
 .preview-home::before {
   background:
-    radial-gradient(circle at 18% 20%, rgba(255, 247, 219, 0.62), transparent 24%),
-    linear-gradient(135deg, rgba(216, 154, 50, 0.14), transparent 64%);
+    radial-gradient(circle at 18% 20%, var(--accent-glow), transparent 24%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-1) 20%, transparent), transparent 64%);
 }
 
 .preview-home-copy {
@@ -697,12 +861,12 @@ body[data-performance="reduced"] .realm-link.active {
   margin: 2px 0 4px;
   padding: 16px 18px;
   border-radius: 34px;
-  background:
-    linear-gradient(145deg, rgba(255, 251, 242, 0.72), rgba(242, 229, 204, 0.54));
-  border: 1px solid rgba(216, 154, 50, 0.16);
+  background: var(--ornament-fill);
+  border: 1px solid var(--ornament-border);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.68),
     inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  transition: transform var(--smooth), border-color var(--fast), background var(--smooth), box-shadow var(--smooth);
 }
 
 .preview-home-ornament::before {
@@ -710,7 +874,7 @@ body[data-performance="reduced"] .realm-link.active {
   position: absolute;
   inset: 8px;
   border-radius: 28px;
-  border: 1px solid rgba(141, 93, 23, 0.12);
+  border: 1px solid var(--ornament-inner);
   pointer-events: none;
 }
 
@@ -729,8 +893,8 @@ body[data-performance="reduced"] .realm-link.active {
   height: 118px;
   clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 63%, 50% 100%, 0 63%, 0 18%);
   background:
-    radial-gradient(circle at 34% 24%, rgba(255, 249, 229, 0.84), transparent 28%),
-    linear-gradient(155deg, rgba(239, 193, 107, 0.96), rgba(188, 118, 39, 0.92));
+    radial-gradient(circle at 34% 24%, var(--accent-glow), transparent 28%),
+    linear-gradient(155deg, color-mix(in srgb, var(--accent-2) 52%, #fff4d7), var(--accent-1));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     0 16px 30px rgba(141, 93, 23, 0.18);
@@ -772,7 +936,7 @@ body[data-performance="reduced"] .realm-link.active {
   width: 58px;
   height: 12px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(202, 109, 84, 0.92), rgba(231, 179, 91, 0.92));
+  background: linear-gradient(90deg, var(--accent-2), color-mix(in srgb, var(--accent-1) 82%, white));
 }
 
 .preview-castle-scene,
@@ -908,9 +1072,9 @@ body[data-performance="reduced"] .realm-link.active {
   min-height: 92px;
   border-radius: 28px;
   background:
-    radial-gradient(circle at 28% 24%, rgba(216, 154, 50, 0.16), transparent 22%),
-    linear-gradient(145deg, rgba(255, 253, 247, 0.68), rgba(244, 231, 207, 0.72));
-  border: 1px solid rgba(141, 93, 23, 0.12);
+    radial-gradient(circle at 28% 24%, color-mix(in srgb, var(--accent-1) 24%, transparent), transparent 22%),
+    linear-gradient(145deg, color-mix(in srgb, var(--accent-glow) 55%, white), color-mix(in srgb, var(--accent-1) 12%, rgba(244, 231, 207, 0.72)));
+  border: 1px solid color-mix(in srgb, var(--accent-1) 24%, rgba(141, 93, 23, 0.12));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
 }
 
@@ -1020,8 +1184,8 @@ body[data-performance="reduced"] .realm-link.active {
   align-items: center;
   padding: 9px 14px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(90, 61, 38, 0.11);
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
   font-size: 0.8rem;
   font-weight: 900;
   letter-spacing: 0.04em;
@@ -1257,10 +1421,10 @@ body[data-performance="reduced"] .task-card:hover {
 .story-card-ornament {
   min-height: 110px;
   border-radius: 28px;
-  background:
-    linear-gradient(145deg, rgba(255, 252, 246, 0.52), rgba(244, 232, 212, 0.4));
-  border: 1px solid rgba(141, 93, 23, 0.1);
+  background: var(--ornament-fill);
+  border: 1px solid color-mix(in srgb, var(--accent-1) 20%, rgba(141, 93, 23, 0.1));
   overflow: hidden;
+  transition: transform var(--smooth), border-color var(--fast), background var(--smooth);
 }
 
 .story-card-ornament::before {
@@ -1444,7 +1608,77 @@ body[data-performance="reduced"] .task-card:hover {
 .page-hero-parent {
   background:
     linear-gradient(180deg, rgba(255, 248, 238, 0.92), rgba(240, 229, 208, 0.84)),
-    linear-gradient(115deg, rgba(111, 132, 201, 0.08), transparent 48%);
+    var(--hero-wash);
+}
+
+body:not([data-performance="reduced"]) .topbar-shell::after,
+body:not([data-performance="reduced"]) .preview-stage::after,
+body:not([data-performance="reduced"]) .story-card::after,
+body:not([data-performance="reduced"]) .page-hero::after,
+body:not([data-performance="reduced"]) .widget-surface::after {
+  animation: sheenFloat 9s ease-in-out infinite;
+}
+
+body:not([data-performance="reduced"]) .brand-crest {
+  animation: crestPulse 6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+body:not([data-performance="reduced"]) .preview-heraldry,
+body:not([data-performance="reduced"]) .preview-castle-scene,
+body:not([data-performance="reduced"]) .preview-map-panel,
+body:not([data-performance="reduced"]) .story-card-ornament {
+  animation: ambientLift 7.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+body:not([data-performance="reduced"]) .preview-castle-scene > span,
+body:not([data-performance="reduced"]) .preview-map-panel > span,
+body:not([data-performance="reduced"]) .ornament-scene > span {
+  animation: ornamentDrift 8.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+body:not([data-performance="reduced"]) .preview-castle-scene > span:nth-child(even),
+body:not([data-performance="reduced"]) .preview-map-panel > span:nth-child(even),
+body:not([data-performance="reduced"]) .ornament-scene > span:nth-child(even) {
+  animation-duration: 10.5s;
+  animation-direction: reverse;
+}
+
+body:not([data-performance="reduced"]) .preview-badges span,
+body:not([data-performance="reduced"]) .headline-chip {
+  transition:
+    transform var(--fast),
+    background-color var(--fast),
+    border-color var(--fast),
+    box-shadow var(--smooth),
+    opacity var(--fast);
+}
+
+body:not([data-performance="reduced"]) .headline-chip:hover,
+body:not([data-performance="reduced"]) .headline-chip:focus-visible,
+body:not([data-performance="reduced"]) .preview-badges span:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(71, 41, 17, 0.08);
+}
+
+body:not([data-performance="reduced"]) .story-card:hover,
+body:not([data-performance="reduced"]) .story-card:focus-within,
+body:not([data-performance="reduced"]) .preview-home-ornament:hover,
+body:not([data-performance="reduced"]) .preview-home-ornament:focus-within {
+  transform: translateY(-3px);
+}
+
+body[data-performance="reduced"] .preview-castle-scene > span,
+body[data-performance="reduced"] .preview-map-panel > span,
+body[data-performance="reduced"] .ornament-scene > span,
+body[data-performance="reduced"] .brand-crest,
+body[data-performance="reduced"] .preview-heraldry,
+body[data-performance="reduced"] .preview-castle-scene,
+body[data-performance="reduced"] .preview-map-panel,
+body[data-performance="reduced"] .story-card-ornament {
+  animation: none !important;
 }
 
 .page-hero-copy {
@@ -1875,6 +2109,52 @@ body[data-motion="ready"] .rise-5 {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ambientLift {
+  from,
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+@keyframes ornamentDrift {
+  from,
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(3px, -4px, 0);
+  }
+}
+
+@keyframes sheenFloat {
+  from,
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translate3d(-14px, -10px, 0);
+    opacity: 0.52;
+  }
+}
+
+@keyframes crestPulse {
+  from,
+  to {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(0, -2px, 0) scale(1.02);
   }
 }
 

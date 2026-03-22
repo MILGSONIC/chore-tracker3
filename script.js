@@ -71,6 +71,8 @@ const pageConfigs = {
       { id: "storybook", label: "Storybook Meadow" },
       { id: "lantern", label: "Lantern Hall" },
       { id: "starlit", label: "Starlit Quest" },
+      { id: "celestial", label: "Celestial Canopy" },
+      { id: "festival", label: "Festival Banners" },
     ],
   },
   parent: {
@@ -81,6 +83,8 @@ const pageConfigs = {
       { id: "command", label: "Command Table" },
       { id: "library", label: "Map Library" },
       { id: "warden", label: "Warden's Desk" },
+      { id: "archive", label: "Archive Parchment" },
+      { id: "royal", label: "Royal Command" },
     ],
   },
   miles: {
@@ -92,6 +96,8 @@ const pageConfigs = {
       { id: "ember", label: "Ember Banner" },
       { id: "forge", label: "Forge Run" },
       { id: "storm", label: "Storm Trail" },
+      { id: "lava", label: "Lava Champion" },
+      { id: "thunder", label: "Thunder Standard" },
     ],
   },
   logan: {
@@ -103,6 +109,8 @@ const pageConfigs = {
       { id: "grove", label: "Grove Scout" },
       { id: "river", label: "River Camp" },
       { id: "glow", label: "Glow Quest" },
+      { id: "ranger", label: "Forest Ranger" },
+      { id: "creek", label: "Creek Camp" },
     ],
   },
   zoe: {
@@ -114,6 +122,8 @@ const pageConfigs = {
       { id: "petal", label: "Petal Parade" },
       { id: "cloud", label: "Cloud Castle" },
       { id: "sunbeam", label: "Sunbeam Sprites" },
+      { id: "moon", label: "Moon Garden" },
+      { id: "carnival", label: "Fairytale Carnival" },
     ],
   },
 };
@@ -499,7 +509,7 @@ function renderHomePage() {
           <article class="story-card story-card-magic reveal rise-4">
             <div class="story-card-copy">
               <p class="eyebrow">Template Magic</p>
-              <h2>Each page keeps three looks</h2>
+              <h2>Each page keeps ${templates.length} looks</h2>
               <p>Each realm remembers its own style and card skin.</p>
             </div>
             <div class="story-card-ornament" aria-hidden="true">
@@ -634,6 +644,7 @@ function getHomePreviewStateKey() {
 function buildHomePreviewMarkup(pageId) {
   if (pageId === "home") {
     const familyMetrics = getProfileMetrics("parent");
+    const homeTemplateCount = pageConfigs.home.themes.length;
     return `
       <div class="preview-card preview-home widget-surface">
         <div class="preview-home-copy">
@@ -641,7 +652,7 @@ function buildHomePreviewMarkup(pageId) {
           <h2>A whimsical launchpad for every family quest.</h2>
           <div class="preview-badges">
             <span>5 pages</span>
-            <span>3 templates each</span>
+            <span>${homeTemplateCount} templates each</span>
             <span>Fantasy home hub</span>
           </div>
         </div>
