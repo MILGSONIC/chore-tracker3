@@ -1858,6 +1858,11 @@ body[data-performance="reduced"] .story-card-ornament {
   text-transform: capitalize;
 }
 
+.source-pill {
+  background: rgba(71, 127, 118, 0.14);
+  color: #3f6f67;
+}
+
 .scope-pill {
   background: rgba(111, 132, 201, 0.14);
   color: #43539c;

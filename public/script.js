@@ -4,6 +4,8 @@ const TEMPLATE_KEY = "chore-quest-templates";
 const WIDGET_STYLE_KEY = "chore-quest-widget-styles";
 const PARENT_PIN = "4826";
 const STATE_VERSION = 4;
+const API_ROOT = "/api";
+const HOUSEHOLD_ID = "default-household";
 
 const profiles = [
   { id: "miles", name: "Miles", age: 13, role: "Oldest adventurer" },
@@ -178,12 +180,13 @@ const rankTitles = [
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const homePreviewCache = new Map();
 
-const state = loadState();
+let state = loadState();
 const templatePrefs = loadTemplatePrefs();
 const widgetStylePrefs = loadWidgetStylePrefs();
 const parentAccess = {
   unlocked: sessionStorage.getItem(PARENT_SESSION_KEY) === "true",
 };
+let appSyncNotice = "";
 
 applyPerformanceMode();
 
@@ -193,7 +196,7 @@ if (typeof reducedMotionQuery.addEventListener === "function") {
   reducedMotionQuery.addListener(applyPerformanceMode);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const pageId = document.body.dataset.page;
   const pageConfig = pageConfigs[pageId];
 
@@ -205,6 +208,8 @@ document.addEventListener("DOMContentLoaded", () => {
     location.href = "index.html?parent=locked";
     return;
   }
+
+  await hydrateStateFromApi();
 
   applyTemplate(pageId);
   applyWidgetStyle(pageId);
@@ -240,6 +245,112 @@ function applyPerformanceMode() {
   if (document.body) {
     document.body.dataset.performance = mode;
   }
+}
+
+async function hydrateStateFromApi() {
+  try {
+    const payload = await apiFetch("/state");
+    state = migrateState(payload);
+    cacheStateSnapshot();
+    appSyncNotice = "";
+  } catch (error) {
+    state = loadState();
+    appSyncNotice = "Live sync is unavailable right now, so the board is showing the last local copy on this device.";
+    console.error("Failed to load shared state", error);
+  }
+}
+
+function cacheStateSnapshot() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  homePreviewCache.clear();
+}
+
+async function apiFetch(path, options = {}) {
+  const response = await fetch(`${API_ROOT}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Household-Id": HOUSEHOLD_ID,
+      ...(options.headers || {}),
+    },
+  });
+
+  const text = await response.text();
+  let payload = {};
+
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = { message: text };
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(payload.error || payload.message || `Request failed with status ${response.status}`);
+  }
+
+  return payload;
+}
+
+function getParentAuthHeaders() {
+  return {
+    "X-Parent-Pin": PARENT_PIN,
+  };
+}
+
+async function createTasksRemotely(taskLikes, options = {}) {
+  const payload = {
+    tasks: taskLikes.map((taskLike) => ({
+      title: taskLike.title,
+      reward: Number(taskLike.reward),
+      difficulty: difficultyXp[taskLike.difficulty] ? taskLike.difficulty : inferDifficulty(taskLike.reward),
+      scope: taskLike.scope === "assigned" ? "assigned" : "shared",
+      assigneeId: taskLike.scope === "assigned" ? taskLike.assigneeId : null,
+      label: taskLike.label || "",
+      source: taskLike.source || options.source || "parent-dashboard",
+      createdBy: taskLike.createdBy || options.createdBy || "website-parent",
+    })),
+  };
+
+  await apiFetch("/tasks", {
+    method: "POST",
+    headers: getParentAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
+
+async function deleteTaskRemotely(taskId) {
+  await apiFetch(`/tasks/${taskId}`, {
+    method: "DELETE",
+    headers: getParentAuthHeaders(),
+  });
+}
+
+async function toggleTaskCompletionRemotely(taskId, creditOverride) {
+  await apiFetch(`/tasks/${taskId}/toggle`, {
+    method: "POST",
+    headers: getParentAuthHeaders(),
+    body: JSON.stringify({
+      creditOverride: profileMap[creditOverride] ? creditOverride : null,
+    }),
+  });
+}
+
+async function clearCompletedRemotely() {
+  await apiFetch("/tasks/clear-completed", {
+    method: "POST",
+    headers: getParentAuthHeaders(),
+  });
+}
+
+function renderSyncNotice() {
+  return appSyncNotice ? `<div class="notice-banner subtle">${appSyncNotice}</div>` : "";
+}
+
+function showMutationError(error, fallbackMessage) {
+  const message = error instanceof Error ? error.message : fallbackMessage;
+  window.alert(message || fallbackMessage);
 }
 
 function loadState() {
@@ -282,6 +393,9 @@ function migrateState(parsed) {
       assigneeId: profileMap[task.assigneeId] ? task.assigneeId : null,
       completedById: profileMap[task.completedById] ? task.completedById : null,
       label: typeof task.label === "string" ? task.label : "",
+      source: typeof task.source === "string" ? task.source : "parent-dashboard",
+      createdBy: typeof task.createdBy === "string" ? task.createdBy : "website-parent",
+      createdAt: Number.isFinite(Number(task.createdAt)) ? Number(task.createdAt) : Date.now(),
     })),
     history: rawHistory.map((entry) => ({
       id: entry.id || crypto.randomUUID(),
@@ -291,13 +405,14 @@ function migrateState(parsed) {
       profileId: profileMap[entry.profileId] ? entry.profileId : null,
       profileName: profileMap[entry.profileId]?.name || entry.profileName || "Family quest",
       timestamp: Number.isFinite(Number(entry.timestamp)) ? Number(entry.timestamp) : Date.now(),
+      source: typeof entry.source === "string" ? entry.source : "website-parent",
+      createdBy: typeof entry.createdBy === "string" ? entry.createdBy : "website-parent",
     })),
   };
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  homePreviewCache.clear();
+  cacheStateSnapshot();
 }
 
 function loadTemplatePrefs() {
@@ -470,6 +585,7 @@ function renderHomePage() {
         <p class="hero-text">
           Wander through each realm, peek at the chores waiting there, and unlock the Parent command hall only when it is time to assign new adventures.
         </p>
+        ${renderSyncNotice()}
         ${parentLocked ? '<div class="notice-banner">The Parent page is locked right now. Head back in with the family PIN.</div>' : ""}
         <nav class="realm-list" id="home-page-list"></nav>
         <div class="template-note">
@@ -763,6 +879,12 @@ function formatCurrency(value) {
   }).format(Number.isFinite(Number(value)) ? Number(value) : 0);
 }
 
+function formatSourceLabel(source) {
+  return source
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function renderDashboardPage(pageConfig) {
   const mount = document.getElementById("page-mount");
   const metrics = pageConfig.type === "parent"
@@ -778,6 +900,7 @@ function renderDashboardPage(pageConfig) {
           <p class="eyebrow">${pageConfig.type === "parent" ? "Parent Hall" : `${profile.name}'s Realm`}</p>
           <h1>${getPageHeroTitle(pageConfig, profile)}</h1>
           <p class="hero-text">${getPageHeroText(pageConfig, profile)}</p>
+          ${renderSyncNotice()}
           <div class="headline-chip-row">
             <span class="headline-chip">${pageConfig.type === "parent" ? "Admin only" : "Read only"}</span>
             <span class="headline-chip">${pageConfig.type === "parent" ? "Shared + assigned chores" : "Shared + personal quests"}</span>
@@ -960,7 +1083,7 @@ function bindParentControls() {
   toggleAssignee();
   scopeInput.addEventListener("change", toggleAssignee);
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const title = taskInput.value.trim();
@@ -973,24 +1096,30 @@ function bindParentControls() {
       return;
     }
 
-    state.tasks.unshift(createTaskRecord({
-      title,
-      reward,
-      difficulty,
-      scope,
-      assigneeId,
-      label: "",
-    }));
-
-    saveState();
-    location.reload();
+    try {
+      await createTasksRemotely([{
+        title,
+        reward,
+        difficulty,
+        scope,
+        assigneeId,
+        label: "",
+        source: "parent-dashboard",
+        createdBy: "website-parent",
+      }]);
+      location.reload();
+    } catch (error) {
+      showMutationError(error, "That quest could not be added right now.");
+    }
   });
 
-  clearButton.addEventListener("click", () => {
-    state.tasks = state.tasks.filter((task) => !task.completed);
-    state.history = state.history.filter((entry) => state.tasks.some((task) => task.id === entry.taskId) || entry.taskId === null);
-    saveState();
-    location.reload();
+  clearButton.addEventListener("click", async () => {
+    try {
+      await clearCompletedRemotely();
+      location.reload();
+    } catch (error) {
+      showMutationError(error, "Completed chores could not be cleared right now.");
+    }
   });
 }
 
@@ -1002,8 +1131,18 @@ function bindImportControls() {
   const preview = document.getElementById("import-preview");
 
   let importSuggestions = [];
+  let importError = "";
+  let importBusy = false;
 
   const renderPreview = () => {
+    parseButton.disabled = importBusy;
+    clearButton.disabled = importBusy;
+
+    if (importError) {
+      preview.innerHTML = `<div class="empty-state">${importError}</div>`;
+      return;
+    }
+
     if (!importSuggestions.length) {
       preview.innerHTML = '<div class="empty-state">No import suggestions yet. Paste chores or upload a document to build a review list.</div>';
       return;
@@ -1015,7 +1154,7 @@ function bindImportControls() {
           <article class="import-card widget-surface">
             <div>
               <strong>${item.title}</strong>
-              <p class="widget-description">Label: ${item.label || "none"} | Reward: ${formatCurrency(item.reward)} | Source: ${item.source}</p>
+              <p class="widget-description">Label: ${item.label || "none"} | Reward: ${formatCurrency(item.reward)} | Source: ${formatSourceLabel(item.source || "parent-import")}</p>
             </div>
             <label class="pretty-select import-assignee">
               <span class="select-label">Suggested assignment</span>
@@ -1045,16 +1184,25 @@ function bindImportControls() {
       });
     });
 
-    document.getElementById("confirm-import").addEventListener("click", () => {
-      importSuggestions.forEach((item) => {
-        state.tasks.unshift(createTaskRecord(item));
-      });
-      saveState();
-      location.reload();
+    document.getElementById("confirm-import").addEventListener("click", async () => {
+      try {
+        await createTasksRemotely(importSuggestions, {
+          source: "parent-import",
+          createdBy: "website-parent",
+        });
+        location.reload();
+      } catch (error) {
+        importError = error.message || "Those chores could not be created right now.";
+        renderPreview();
+      }
     });
   };
 
   const buildSuggestions = async () => {
+    importBusy = true;
+    importError = "";
+    renderPreview();
+
     const chunks = [];
 
     if (textInput.value.trim()) {
@@ -1071,10 +1219,12 @@ function bindImportControls() {
       }
     }
 
+    importBusy = false;
     importSuggestions = parseImportedChores(chunks.join("\n"));
 
     if (!importSuggestions.length && chunks.length) {
-      preview.innerHTML = '<div class="empty-state">Nothing readable was found in that import. Try one chore per line with an optional label and reward.</div>';
+      importError = "Nothing readable was found in that import. Try one chore per line with an optional label and reward.";
+      renderPreview();
       return;
     }
 
@@ -1082,13 +1232,19 @@ function bindImportControls() {
   };
 
   parseButton.addEventListener("click", () => {
-    buildSuggestions();
+    buildSuggestions().catch((error) => {
+      importBusy = false;
+      importError = error.message || "Import suggestions could not be built right now.";
+      renderPreview();
+    });
   });
 
   clearButton.addEventListener("click", () => {
     textInput.value = "";
     fileInput.value = "";
     importSuggestions = [];
+    importError = "";
+    importBusy = false;
     renderPreview();
   });
 
@@ -1234,6 +1390,9 @@ function createTaskRecord(taskLike) {
     assigneeId,
     completedById: null,
     label: taskLike.label || "",
+    source: taskLike.source || "parent-dashboard",
+    createdBy: taskLike.createdBy || "website-parent",
+    createdAt: taskLike.createdAt || Date.now(),
   };
 }
 
@@ -1264,20 +1423,29 @@ function renderTaskRegion(pageConfig, metrics) {
   }
 
   region.querySelectorAll("[data-toggle-task]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const task = state.tasks.find((entry) => entry.id === button.dataset.toggleTask);
+      if (!task) {
+        return;
+      }
       const creditSelect = region.querySelector(`[data-credit-select="${task.id}"]`);
-      completeTask(task.id, creditSelect ? creditSelect.value : null);
-      location.reload();
+      try {
+        await toggleTaskCompletionRemotely(task.id, creditSelect ? creditSelect.value : null);
+        location.reload();
+      } catch (error) {
+        showMutationError(error, "That task could not be updated right now.");
+      }
     });
   });
 
   region.querySelectorAll("[data-delete-task]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.tasks = state.tasks.filter((task) => task.id !== button.dataset.deleteTask);
-      state.history = state.history.filter((entry) => entry.taskId !== button.dataset.deleteTask);
-      saveState();
-      location.reload();
+    button.addEventListener("click", async () => {
+      try {
+        await deleteTaskRemotely(button.dataset.deleteTask);
+        location.reload();
+      } catch (error) {
+        showMutationError(error, "That task could not be removed right now.");
+      }
     });
   });
 }
@@ -1287,6 +1455,7 @@ function renderTaskCard(task, parentMode) {
   const creditedName = task.completedById ? profileMap[task.completedById]?.name : null;
   const creditValue = task.scope === "assigned" && task.assigneeId ? task.assigneeId : task.completedById || profiles[0].id;
   const metaLabel = task.label ? `<span class="label-pill">${task.label}</span>` : "";
+  const sourceLabel = task.source ? `<span class="label-pill source-pill">${formatSourceLabel(task.source)}</span>` : "";
 
   return `
     <li class="task-card reveal rise-2 ${task.completed ? "completed" : ""}">
@@ -1299,6 +1468,7 @@ function renderTaskCard(task, parentMode) {
         <div class="task-meta">
           <span class="difficulty-pill">${task.difficulty}</span>
           ${metaLabel}
+          ${sourceLabel}
           <span class="scope-pill">${task.scope === "shared" ? "Shared quest" : `Assigned to ${assignedName}`}</span>
           <span class="credit-pill">${
             task.completed

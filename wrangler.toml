@@ -1,9 +1,20 @@
 name = "miles-sparrow-website"
+main = "worker.js"
 compatibility_date = "2026-03-20"
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
 not_found_handling = "single-page-application"
+
+[vars]
+PARENT_API_PIN = "4826"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chore-quest"
+database_id = "replace-with-d1-database-id"
+preview_database_id = "replace-with-preview-d1-database-id"
 
 [observability.logs]
 enabled = true
